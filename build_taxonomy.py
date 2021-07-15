@@ -2,8 +2,6 @@ from networkx.exception import PowerIterationFailedConvergence
 import pandas as pd
 import networkx as nx
 
-import ingest_data
-
 
 def build_taxonomy(network_df, t, delta_t):
     G = nx.Graph()
@@ -49,16 +47,3 @@ def build_taxonomy(network_df, t, delta_t):
                     t_neighbourhood_deg, t_neighbourhood_deg - prev_t_neighbourhood_deg]
 
     return taxonomy_df
-
-
-network_df = ingest_data.ingest_data('CollegeMsg')
-# .filter(lambda x: len(x) > 1))
-# print(network_df.loc[0].values[2])
-# print(pd.DataFrame(network_df.groupby(
-# by='creation_time')).at[0, 0])
-taxonomy_df = build_taxonomy(network_df, max(network_df.index), 1000)
-print(taxonomy_df.head(100).to_string())
-
-# df = pd.DataFrame([111, 221, 211, 211, 32, 211, 32, 22], columns=['a'])
-# print(df['a'].values)
-# print(pd.DataFrame(df.groupby('a')).at[3, 0])

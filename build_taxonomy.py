@@ -5,7 +5,7 @@ import networkx as nx
 import ingest_data
 
 
-def build_network(network_df, t, delta_t):
+def build_taxonomy(network_df, t, delta_t):
     G = nx.Graph()
 
     network_df_groupby = network_df.groupby(by='creation_time')
@@ -28,7 +28,7 @@ def build_network(network_df, t, delta_t):
             prev_t_neighbourhood = dict(nx.average_neighbor_degree(G))
 
         if creation_time == timestamp:
-            degree_df = pd.DataFrame(
+            taxonomy_df = pd.DataFrame(
                 columns=['node', 'individual', 'delta_individual',
                          'neighbourhood', 'delta_neighbourhood'])
             t_individual = dict(G.degree)
@@ -44,20 +44,21 @@ def build_network(network_df, t, delta_t):
                     prev_t_individual_deg = 0
                     prev_t_neighbourhood_deg = 0
 
-                degree_df.loc[len(degree_df.index)] = [
+                taxonomy_df.loc[len(taxonomy_df.index)] = [
                     node, t_individual_deg, t_individual_deg - prev_t_individual_deg,
                     t_neighbourhood_deg, t_neighbourhood_deg - prev_t_neighbourhood_deg]
 
-    return degree_df
+    return taxonomy_df
 
 
-network_df = ingest_data.ingest_data('CollegeMsg', 0, 10000)
+network_df = ingest_data.ingest_data('CollegeMsg')
 # .filter(lambda x: len(x) > 1))
 # print(network_df.loc[0].values[2])
 # print(pd.DataFrame(network_df.groupby(
 # by='creation_time')).at[0, 0])
-degree_df = build_network(network_df, max(network_df.index), 1000)
-print(degree_df.head(100).to_string())
+taxonomy_df = build_taxonomy(network_df, max(network_df.index), 1000)
+print(taxonomy_df.head(100).to_string())
 
 # df = pd.DataFrame([111, 221, 211, 211, 32, 211, 32, 22], columns=['a'])
+# print(df['a'].values)
 # print(pd.DataFrame(df.groupby('a')).at[3, 0])

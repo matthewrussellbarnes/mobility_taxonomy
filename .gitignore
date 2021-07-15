@@ -1,0 +1,9 @@
+*.png
+*.pdf
+*.csv
+*.json
+*.gz
+*.txt
+*.xlsx
+*.vscode
+tw-mkgml5.py

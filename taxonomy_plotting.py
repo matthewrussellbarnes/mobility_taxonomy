@@ -11,31 +11,81 @@ def default_plot_params(ax):
     ax.tick_params(axis='both', labelsize=15)
 
 
-def create_plot_data_file(f_name, x_key, x, y_key, y):
-    fig_data = utilities.get_file_data(
-        f_name, utilities.figs_data_path)
-
-    if not fig_data:
-        fig_data = {x_key: x, y_key: y}
-
-        path = f"{utilities.figs_data_path}/{f_name}_{str(datetime.datetime.now().strftime('%Y-%m-%d-%H%M'))}.txt"
-        f = open(path, 'w')
-        f.write(str(fig_data))
-        f.close()
-
-
 def plot_mobility(ax, taxonomy_data, curve_label=''):
     default_plot_params(ax)
 
-    individual = list(taxonomy_data['individual'])
-    delta_individual = list(taxonomy_data['delta_individual'])
-    create_plot_data_file(
-        f"mobility_{curve_label}", 'individual', individual, 'delta_individual', delta_individual)
+    individual = taxonomy_data['individual']
+    delta_individual = taxonomy_data['delta_individual']
 
     ax.scatter(individual, delta_individual, label=curve_label)
     ax.set_xlabel("Individual Degree")
     ax.set_ylabel("Change in Individual Degree")
-    ax.set_title('Individual degree vs change in degree over last 1000i')
+    ax.set_title('Individual Mobility')
+    ax.legend()
+
+
+def plot_neighbourhood_mobility(ax, taxonomy_data, curve_label=''):
+    default_plot_params(ax)
+
+    neighbourhood = taxonomy_data['neighbourhood']
+    delta_neighbourhood = taxonomy_data['delta_neighbourhood']
+
+    ax.scatter(neighbourhood, delta_neighbourhood, label=curve_label)
+    ax.set_xlabel("Neighbourhood Degree")
+    ax.set_ylabel("Change in Neighbourhood Degree")
+    ax.set_title('Neighbourhood Mobility')
+    ax.legend()
+
+
+def plot_assortativity(ax, taxonomy_data, curve_label=''):
+    default_plot_params(ax)
+
+    individual = taxonomy_data['individual']
+    neighbourhood = taxonomy_data['neighbourhood']
+
+    ax.scatter(individual, neighbourhood, label=curve_label)
+    ax.set_xlabel("Individual Degree")
+    ax.set_ylabel("Average Neighbourhood Degree")
+    ax.set_title('Assortativity')
+    ax.legend()
+
+
+def plot_delta_assortativity(ax, taxonomy_data, curve_label=''):
+    default_plot_params(ax)
+
+    delta_individual = taxonomy_data['delta_individual']
+    delta_neighbourhood = taxonomy_data['delta_neighbourhood']
+
+    ax.scatter(delta_individual, delta_neighbourhood, label=curve_label)
+    ax.set_xlabel("Change in Individual Degree")
+    ax.set_ylabel("Change in Average Neighbourhood Degree")
+    ax.set_title('Change in Assortativity')
+    ax.legend()
+
+
+def plot_philanthropy(ax, taxonomy_data, curve_label=''):
+    default_plot_params(ax)
+
+    individual = taxonomy_data['individual']
+    delta_neighbourhood = taxonomy_data['delta_neighbourhood']
+
+    ax.scatter(individual, delta_neighbourhood, label=curve_label)
+    ax.set_xlabel("Individual Degree")
+    ax.set_ylabel("Change in Average Neighbourhood Degree")
+    ax.set_title('Philanthropy')
+    ax.legend()
+
+
+def plot_individuality_vs_community(ax, taxonomy_data, curve_label=''):
+    default_plot_params(ax)
+
+    delta_individual = taxonomy_data['delta_individual']
+    neighbourhood = taxonomy_data['neighbourhood']
+
+    ax.scatter(delta_individual, neighbourhood, label=curve_label)
+    ax.set_xlabel("Change in Individual Degree")
+    ax.set_ylabel("Average Neighbourhood Degree")
+    ax.set_title('Individuality/Community')
     ax.legend()
 
     plt.savefig(f"./figs/individual_degree_vs_change_{curve_label}.png")

@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import os
+import pandas as pd
 
 import ingest_data
 import build_taxonomy
@@ -8,6 +9,7 @@ import utilities
 
 utilities.init_lib()
 
+dt = 5000
 for _, dirs, files in os.walk(utilities.dataset_path, topdown=True):
     dirs[:] = [d for d in dirs if d != 'do_not_import']
     for file in files:
@@ -19,14 +21,23 @@ for _, dirs, files in os.walk(utilities.dataset_path, topdown=True):
 
         plot_name = 'mobility'
 
-        f_name = f"{plot_name}_{data_f_name}"
-        fig_data = utilities.get_file_data(
-            f_name, utilities.figs_data_path)
+        taxonomy_data_f_path = utilities.get_file_path(
+            data_f_name, utilities.taxonomy_data_path)
 
-        if not fig_data:
+        if taxonomy_data_f_path:
+            t = taxonomy_data_f_path[
+                taxonomy_data_f_path.index("_ti") + 3:
+                taxonomy_data_f_path.index("_", taxonomy_data_f_path.index("_ti") + 3)]
+            taxonomy_df = pd.read_csv(taxonomy_data_f_path)
+
+        else:
             network_data = ingest_data.ingest_data(data_f_name)
-            fig_data = build_taxonomy.build_taxonomy(
-                network_data, max(network_data.index), 1000)
+            taxonomy_df, t = build_taxonomy.build_taxonomy(
+                network_data, max(network_data.index), dt, data_f_name)
 
+        plot_name = f"{data_f_name}_ti{t}_dti{dt}"
         _, ax = plt.subplots(1, 1, figsize=(15, 10))
-        taxonomy_plotting.plot_mobility(ax, fig_data, data_f_name)
+        taxonomy_plotting.plot_mobility(
+            ax, taxonomy_df, plot_name)
+        plt.savefig(f"./figs/mobility_{plot_name}.png")
+

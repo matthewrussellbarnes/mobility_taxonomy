@@ -2,6 +2,7 @@ from networkx.exception import PowerIterationFailedConvergence
 import pandas as pd
 import networkx as nx
 import datetime
+import math
 
 import utilities
 
@@ -15,7 +16,7 @@ def create_taxonomy_data_file(f_name, taxonomy_df):
         taxonomy_df.to_csv(path, index=False)
 
 
-def build_taxonomy(network_df, t, delta_t, data_f_name):
+def build_taxonomy(network_df, t, delta_t_percent, data_f_name):
     G = nx.Graph()
 
     network_df_groupby = network_df.groupby(by='creation_time')
@@ -24,7 +25,9 @@ def build_taxonomy(network_df, t, delta_t, data_f_name):
     if t > max(grouped_network_df.index):
         t = max(grouped_network_df.index)
 
-    prev_t = t - delta_t
+    dt = int(math.ceil(t * (delta_t_percent / 100)))
+
+    prev_t = t - dt
     if prev_t < 0:
         prev_t = 0
 
@@ -58,9 +61,10 @@ def build_taxonomy(network_df, t, delta_t, data_f_name):
                     prev_t_neighbourhood_deg = 0
 
                 taxonomy_df.loc[len(taxonomy_df.index)] = [
-                    node, t_individual_deg, t_individual_deg - prev_t_individual_deg,
-                    t_neighbourhood_deg, t_neighbourhood_deg - prev_t_neighbourhood_deg]
+                    node, prev_t_individual_deg, t_individual_deg - prev_t_individual_deg,
+                    prev_t_neighbourhood_deg, t_neighbourhood_deg - prev_t_neighbourhood_deg]
 
-    create_taxonomy_data_file(f"{data_f_name}_ti{t}_dti{delta_t}", taxonomy_df)
+    create_taxonomy_data_file(
+        f"{data_f_name}_ti{t}_dti{dt}", taxonomy_df)
 
     return taxonomy_df, t

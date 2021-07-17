@@ -12,9 +12,6 @@ import utilities
 utilities.init()
 
 dt_percent = 50
-_, ax = plt.subplots(1, 1, figsize=(15, 10))
-
-plot_data = {}
 for _, dirs, files in os.walk(utilities.dataset_path, topdown=True):
     dirs[:] = [d for d in dirs if d != 'do_not_import']
     filtered_files = filter(lambda file: not file.startswith('.'), files)
@@ -37,16 +34,8 @@ for _, dirs, files in os.walk(utilities.dataset_path, topdown=True):
                 network_data, max(network_data.index), dt_percent, data_f_name)
 
         dt = int(math.ceil(int(t) * (dt_percent / 100)))
-
-        plot_data[data_f_name] = {
-            'taxonomy_data': taxonomy_df,
-            't': t,
-            'dt': dt
-        }
-
-taxonomy_plotting.plot_taxonomy_for_multiple_networks(ax, plot_data)
-
-
-# df = pd.DataFrame([111, 221, 211, 211, 32, 211, 32, 22], columns=['a'])
-# print(df['a'].values)
-# print(pd.DataFrame(df.groupby('a')).at[3, 0])
+        _, ax = plt.subplots(1, 1, figsize=(15, 10))
+        taxonomy_plotting.plot_taxonomy_for_single_network(
+            ax, taxonomy_df, f"{data_f_name} with t={t} and dt={dt}")
+        plt.savefig(
+            f"./figs/taxomony_{data_f_name}_ti{t}_dti{dt}.png")

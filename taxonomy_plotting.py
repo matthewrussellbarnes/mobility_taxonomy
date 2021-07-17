@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
-import datetime
-
-import utilities
+import scipy.stats as stats
+import numpy as np
 
 
 def default_plot_params(ax):
@@ -88,4 +87,77 @@ def plot_individuality_vs_community(ax, taxonomy_data, curve_label=''):
     ax.set_title('Individuality/Community')
     ax.legend()
 
-    plt.savefig(f"./figs/individual_degree_vs_change_{curve_label}.png")
+
+def plot_taxonomy_for_single_network(ax, taxonomy_data, plot_label=''):
+    default_plot_params(ax)
+
+    individual = taxonomy_data['individual']
+    delta_individual = taxonomy_data['delta_individual']
+    neighbourhood = taxonomy_data['neighbourhood']
+    delta_neighbourhood = taxonomy_data['delta_neighbourhood']
+
+    mobility, _ = stats.pearsonr(individual, delta_individual)
+    assortativity, _ = stats.pearsonr(individual, neighbourhood)
+    philanthropy, _ = stats.pearsonr(individual, delta_neighbourhood)
+    individuality_community, _ = stats.pearsonr(
+        delta_individual, neighbourhood)
+    delta_assortativity, _ = stats.pearsonr(
+        delta_individual, delta_neighbourhood)
+    neighbourhood_mobility, _ = stats.pearsonr(
+        neighbourhood, delta_neighbourhood)
+
+    ax.bar(['mobility', 'assortativity', 'philanthropy', 'commmunity', 'delta_assortativity', 'nbrhd_mobility'], [
+           mobility, assortativity, philanthropy, individuality_community, delta_assortativity, neighbourhood_mobility])
+
+    ax.set_xlabel('Taxonomy', fontsize=15)
+    ax.set_ylabel('Pearson Correlation Coefficient', fontsize=15)
+    ax.set_title(f"Taxonomy for {plot_label}")
+    ax.set_ylim([-1.1, 1.1])
+
+
+def plot_taxonomy_for_multiple_networks(ax, plot_data_dict):
+    default_plot_params(ax)
+
+    x_axis_labels = ['mobility', 'assortativity', 'philanthropy',
+                     'commmunity', 'delta_assortativity', 'nbrhd_mobility']
+    r = np.arange(len(x_axis_labels))
+    width = 0.2
+
+    td_i = 0
+    for data_f_name, plot_data in plot_data_dict.items():
+
+        taxonomy_data = plot_data['taxonomy_data']
+        t = plot_data['t']
+        dt = plot_data['dt']
+
+        individual = taxonomy_data['individual']
+        delta_individual = taxonomy_data['delta_individual']
+        neighbourhood = taxonomy_data['neighbourhood']
+        delta_neighbourhood = taxonomy_data['delta_neighbourhood']
+
+        mobility, _ = stats.pearsonr(individual, delta_individual)
+        assortativity, _ = stats.pearsonr(individual, neighbourhood)
+        philanthropy, _ = stats.pearsonr(individual, delta_neighbourhood)
+        individuality_community, _ = stats.pearsonr(
+            delta_individual, neighbourhood)
+        delta_assortativity, _ = stats.pearsonr(
+            delta_individual, delta_neighbourhood)
+        neighbourhood_mobility, _ = stats.pearsonr(
+            neighbourhood, delta_neighbourhood)
+
+        curve_label = f"{data_f_name}: t={t} dt={dt}"
+
+        ax.bar(r + (width * td_i), [
+            mobility, assortativity, philanthropy, individuality_community, delta_assortativity, neighbourhood_mobility],
+            width=width, label=curve_label)
+
+        td_i += 1
+
+    ax.set_xlabel('Taxonomy', fontsize=15)
+    ax.set_ylabel('Pearson Correlation Coefficient', fontsize=15)
+    ax.set_title(f"Taxonomy Comparison")
+    ax.set_ylim([-1.1, 1.1])
+    ax.legend()
+
+    plt.xticks(r + width / len(plot_data_dict), x_axis_labels)
+    plt.savefig(f"./figs/taxomony_comparison_all.png")

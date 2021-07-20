@@ -121,7 +121,7 @@ def plot_taxonomy_for_multiple_networks(ax, plot_data_dict, dt_percent):
     x_axis_labels = ['mobility', 'assortativity', 'philanthropy',
                      'commmunity', 'delta_assortativity', 'nbrhd_mobility']
     r = np.arange(len(x_axis_labels))
-    width = 0.2
+    width = 0.1
 
     td_i = 0
     for data_f_name, plot_data in plot_data_dict.items():

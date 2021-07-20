@@ -2,9 +2,11 @@ import os
 import csv
 import pandas as pd
 
+import utilities
+
 
 def ingest_data(data_f_name, first_row=None, max_rows=None):
-    data_path = os.path.join(os.getcwd(), f"datasets/{data_f_name}.csv")
+    data_path = os.path.join(utilities.dataset_path, f"{data_f_name}.csv")
 
     network_df = pd.DataFrame(columns=['n1', 'n2', 'creation_time'])
     with open(data_path) as csvfile:
@@ -25,5 +27,5 @@ def ingest_data(data_f_name, first_row=None, max_rows=None):
                         n1, n2, creation_time]
                 else:
                     break
-
+            r += 1
     return network_df

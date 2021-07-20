@@ -1,4 +1,3 @@
-from networkx.exception import PowerIterationFailedConvergence
 import pandas as pd
 import networkx as nx
 import datetime
@@ -65,6 +64,6 @@ def build_taxonomy(network_df, t, delta_t_percent, data_f_name):
                     prev_t_neighbourhood_deg, t_neighbourhood_deg - prev_t_neighbourhood_deg]
 
     create_taxonomy_data_file(
-        f"{data_f_name}_ti{t}_dti{dt}", taxonomy_df)
+        f"{data_f_name}_dtp{delta_t_percent}_ti{t}", taxonomy_df)
 
     return taxonomy_df, t

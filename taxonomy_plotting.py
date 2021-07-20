@@ -115,7 +115,7 @@ def plot_taxonomy_for_single_network(ax, taxonomy_data, plot_label=''):
     ax.set_ylim([-1.1, 1.1])
 
 
-def plot_taxonomy_for_multiple_networks(ax, plot_data_dict):
+def plot_taxonomy_for_multiple_networks(ax, plot_data_dict, dt_percent):
     default_plot_params(ax)
 
     x_axis_labels = ['mobility', 'assortativity', 'philanthropy',
@@ -160,4 +160,4 @@ def plot_taxonomy_for_multiple_networks(ax, plot_data_dict):
     ax.legend()
 
     plt.xticks(r + width / len(plot_data_dict), x_axis_labels)
-    plt.savefig(f"./figs/taxomony_comparison_all.png")
+    plt.savefig(f"./figs/taxomony_comparison_all_dtp{dt_percent}.png")

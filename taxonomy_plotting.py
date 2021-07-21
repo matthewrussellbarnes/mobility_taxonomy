@@ -124,6 +124,7 @@ def plot_taxonomy_for_multiple_networks(ax, plot_data_dict, dt_percent):
     width = 0.1
 
     td_i = 0
+    even = True
     for data_f_name, plot_data in plot_data_dict.items():
 
         taxonomy_data = plot_data['taxonomy_data']
@@ -151,7 +152,13 @@ def plot_taxonomy_for_multiple_networks(ax, plot_data_dict, dt_percent):
             mobility, assortativity, philanthropy, individuality_community, delta_assortativity, neighbourhood_mobility],
             width=width, label=curve_label)
 
-        td_i += 1
+        if even:
+            td_i = abs(td_i)
+            td_i += 1
+            even = False
+        else:
+            td_i *= -1
+            even = True
 
     ax.set_xlabel('Taxonomy', fontsize=15)
     ax.set_ylabel('Pearson Correlation Coefficient', fontsize=15)

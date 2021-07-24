@@ -1,4 +1,6 @@
 import matplotlib.pyplot as plt
+from matplotlib import cm, colors
+
 import scipy.stats as stats
 import numpy as np
 
@@ -121,7 +123,11 @@ def plot_taxonomy_for_multiple_networks(ax, plot_data_dict, dt_percent):
     x_axis_labels = ['mobility', 'assortativity', 'philanthropy',
                      'commmunity', 'delta_assortativity', 'nbrhd_mobility']
     r = np.arange(len(x_axis_labels))
-    width = 0.1
+    width = 0.05
+
+    data_f_name_list = list(plot_data_dict.keys())
+    plot_colors = cm.ScalarMappable(colors.Normalize(
+        0, len(data_f_name_list)), 'tab20')
 
     td_i = 0
     even = True
@@ -150,7 +156,7 @@ def plot_taxonomy_for_multiple_networks(ax, plot_data_dict, dt_percent):
 
         ax.bar(r + (width * td_i), [
             mobility, assortativity, philanthropy, individuality_community, delta_assortativity, neighbourhood_mobility],
-            width=width, label=curve_label)
+            width=width, label=curve_label, color=plot_colors.to_rgba(data_f_name_list.index(data_f_name)))
 
         if even:
             td_i = abs(td_i)

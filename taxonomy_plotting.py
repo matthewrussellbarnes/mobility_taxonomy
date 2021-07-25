@@ -12,78 +12,84 @@ def default_plot_params(ax):
     ax.tick_params(axis='both', labelsize=15)
 
 
-def plot_mobility(ax, taxonomy_data, curve_label=''):
+def plot_mobility(ax, taxonomy_data, color='black', curve_label=''):
     default_plot_params(ax)
 
     individual = taxonomy_data['individual']
     delta_individual = taxonomy_data['delta_individual']
 
-    ax.scatter(individual, delta_individual, label=curve_label)
+    ax.scatter(individual, delta_individual, label=curve_label,
+               color=color)
     ax.set_xlabel("Individual Degree")
     ax.set_ylabel("Change in Individual Degree")
     ax.set_title('Individual Mobility')
     ax.legend()
 
 
-def plot_neighbourhood_mobility(ax, taxonomy_data, curve_label=''):
+def plot_neighbourhood_mobility(ax, taxonomy_data, color='black', curve_label=''):
     default_plot_params(ax)
 
     neighbourhood = taxonomy_data['neighbourhood']
     delta_neighbourhood = taxonomy_data['delta_neighbourhood']
 
-    ax.scatter(neighbourhood, delta_neighbourhood, label=curve_label)
+    ax.scatter(neighbourhood, delta_neighbourhood,
+               label=curve_label, color=color)
     ax.set_xlabel("Neighbourhood Degree")
     ax.set_ylabel("Change in Neighbourhood Degree")
     ax.set_title('Neighbourhood Mobility')
     ax.legend()
 
 
-def plot_assortativity(ax, taxonomy_data, curve_label=''):
+def plot_assortativity(ax, taxonomy_data, color='black', curve_label=''):
     default_plot_params(ax)
 
     individual = taxonomy_data['individual']
     neighbourhood = taxonomy_data['neighbourhood']
 
-    ax.scatter(individual, neighbourhood, label=curve_label)
+    ax.scatter(individual, neighbourhood, label=curve_label,
+               color=color)
     ax.set_xlabel("Individual Degree")
     ax.set_ylabel("Average Neighbourhood Degree")
     ax.set_title('Assortativity')
     ax.legend()
 
 
-def plot_delta_assortativity(ax, taxonomy_data, curve_label=''):
+def plot_delta_assortativity(ax, taxonomy_data, color='black', curve_label=''):
     default_plot_params(ax)
 
     delta_individual = taxonomy_data['delta_individual']
     delta_neighbourhood = taxonomy_data['delta_neighbourhood']
 
-    ax.scatter(delta_individual, delta_neighbourhood, label=curve_label)
+    ax.scatter(delta_individual, delta_neighbourhood,
+               label=curve_label, color=color)
     ax.set_xlabel("Change in Individual Degree")
     ax.set_ylabel("Change in Average Neighbourhood Degree")
     ax.set_title('Change in Assortativity')
     ax.legend()
 
 
-def plot_philanthropy(ax, taxonomy_data, curve_label=''):
+def plot_philanthropy(ax, taxonomy_data, color='black', curve_label=''):
     default_plot_params(ax)
 
     individual = taxonomy_data['individual']
     delta_neighbourhood = taxonomy_data['delta_neighbourhood']
 
-    ax.scatter(individual, delta_neighbourhood, label=curve_label)
+    ax.scatter(individual, delta_neighbourhood, label=curve_label,
+               color=color)
     ax.set_xlabel("Individual Degree")
     ax.set_ylabel("Change in Average Neighbourhood Degree")
     ax.set_title('Philanthropy')
     ax.legend()
 
 
-def plot_individuality_vs_community(ax, taxonomy_data, curve_label=''):
+def plot_individuality_vs_community(ax, taxonomy_data, color='black', curve_label=''):
     default_plot_params(ax)
 
     delta_individual = taxonomy_data['delta_individual']
     neighbourhood = taxonomy_data['neighbourhood']
 
-    ax.scatter(delta_individual, neighbourhood, label=curve_label)
+    ax.scatter(delta_individual, neighbourhood, label=curve_label,
+               color=color)
     ax.set_xlabel("Change in Individual Degree")
     ax.set_ylabel("Average Neighbourhood Degree")
     ax.set_title('Individuality/Community')
@@ -174,3 +180,48 @@ def plot_taxonomy_for_multiple_networks(ax, plot_data_dict, dt_percent):
 
     plt.xticks(r + width / len(plot_data_dict), x_axis_labels)
     plt.savefig(f"./figs/taxomony_comparison_all_dtp{dt_percent}.png")
+
+
+def plot_taxonomy_for_each_network(plot_data_dict, dt_percent):
+    fig1, ax_mobility = plt.subplots(1, 1, figsize=(15, 10))
+    fig2, ax_assortativity = plt.subplots(1, 1, figsize=(15, 10))
+    fig3, ax_philanthropy = plt.subplots(1, 1, figsize=(15, 10))
+    fig4, ax_individuality_vs_community = plt.subplots(1, 1, figsize=(15, 10))
+    fig5, ax_delta_assortativity = plt.subplots(1, 1, figsize=(15, 10))
+    fig6, ax_neighbourhood_mobility = plt.subplots(1, 1, figsize=(15, 10))
+
+    data_f_name_list = list(plot_data_dict.keys())
+    plot_colors = cm.ScalarMappable(colors.Normalize(
+        0, len(data_f_name_list)), 'tab20')
+
+    for data_f_name, plot_data in plot_data_dict.items():
+
+        taxonomy_data = plot_data['taxonomy_data']
+        t = plot_data['t']
+        dt = plot_data['dt']
+
+        curve_label = f"{data_f_name}: t={t} dt={dt}"
+        plot_color = plot_colors.to_rgba(data_f_name_list.index(data_f_name))
+
+        plot_mobility(ax_mobility, taxonomy_data,
+                      plot_color, curve_label)
+        plot_assortativity(ax_assortativity, taxonomy_data,
+                           plot_color, curve_label)
+        plot_philanthropy(ax_philanthropy, taxonomy_data,
+                          plot_color, curve_label)
+        plot_individuality_vs_community(
+            ax_individuality_vs_community, taxonomy_data, plot_color, curve_label)
+        plot_delta_assortativity(ax_delta_assortativity,
+                                 taxonomy_data, plot_color, curve_label)
+        plot_neighbourhood_mobility(
+            ax_neighbourhood_mobility, taxonomy_data, plot_color, curve_label)
+
+    fig1.savefig(f"./figs/mobility_comparison_all_dtp{dt_percent}.png")
+    fig2.savefig(f"./figs/assortativity_comparison_all_dtp{dt_percent}.png")
+    fig3.savefig(f"./figs/philanthropy_comparison_all_dtp{dt_percent}.png")
+    fig4.savefig(
+        f"./figs/individuality_vs_community_comparison_all_dtp{dt_percent}.png")
+    fig5.savefig(
+        f"./figs/delta_assortativity_comparison_all_dtp{dt_percent}.png")
+    fig6.savefig(
+        f"./figs/neighbourhood_mobility_comparison_all_dtp{dt_percent}.png")

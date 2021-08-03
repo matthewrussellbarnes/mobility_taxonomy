@@ -41,11 +41,12 @@ def build_taxonomy(network_df, t, delta_t_percent, data_f_name):
         if creation_time == prev_timestamp:
             prev_t_individual = dict(G.degree)
             prev_t_neighbourhood = dict(nx.average_neighbor_degree(G))
+            G_prev_t = G.copy()
 
         if creation_time == timestamp:
             taxonomy_df = pd.DataFrame(
                 columns=['node', 'individual', 'delta_individual',
-                         'neighbourhood', 'delta_neighbourhood'])
+                         'neighbourhood', 'delta_neighbourhood', 'delta_consistent_neighbourhood'])
             t_individual = dict(G.degree)
             t_neighbourhood = dict(nx.average_neighbor_degree(G))
 
@@ -59,9 +60,17 @@ def build_taxonomy(network_df, t, delta_t_percent, data_f_name):
                     prev_t_individual_deg = 0
                     prev_t_neighbourhood_deg = 0
 
+                consistent_neighbourhood_deg = 0
+                if G_prev_t.__contains__(node):
+                    consistent_neighbourhood = G_prev_t[node]
+                    for neighbour_node in consistent_neighbourhood:
+                        consistent_neighbourhood_deg += G.degree[neighbour_node]
+
+                consistent_neighbourhood_deg /= len(consistent_neighbourhood)
+
                 taxonomy_df.loc[len(taxonomy_df.index)] = [
                     node, prev_t_individual_deg, t_individual_deg - prev_t_individual_deg,
-                    prev_t_neighbourhood_deg, t_neighbourhood_deg - prev_t_neighbourhood_deg]
+                    prev_t_neighbourhood_deg, t_neighbourhood_deg - prev_t_neighbourhood_deg, consistent_neighbourhood_deg - prev_t_neighbourhood_deg]
 
     create_taxonomy_data_file(
         f"{data_f_name}_dtp{delta_t_percent}_ti{t}", taxonomy_df)

@@ -10,11 +10,10 @@ def default_plot_params(ax):
     ax.grid(which="major", alpha=1)
     ax.grid(which="minor", alpha=0.2)
     ax.tick_params(axis='both', labelsize=15)
+    ax.legend(bbox_to_anchor=(0.5, -0.2), loc='upper center', ncol=3)
 
 
 def plot_mobility(ax, taxonomy_data, color='black', curve_label=''):
-    default_plot_params(ax)
-
     individual = taxonomy_data['individual']
     delta_individual = taxonomy_data['delta_individual']
 
@@ -23,26 +22,24 @@ def plot_mobility(ax, taxonomy_data, color='black', curve_label=''):
     ax.set_xlabel("Individual Degree")
     ax.set_ylabel("Change in Individual Degree")
     ax.set_title('Individual Mobility')
-    ax.legend()
+
+    default_plot_params(ax)
 
 
 def plot_neighbourhood_mobility(ax, taxonomy_data, color='black', curve_label=''):
-    default_plot_params(ax)
-
     neighbourhood = taxonomy_data['neighbourhood']
-    delta_neighbourhood = taxonomy_data['delta_neighbourhood']
+    delta_neighbourhood = taxonomy_data['delta_consistent_neighbourhood']
 
     ax.scatter(neighbourhood, delta_neighbourhood,
                label=curve_label, color=color)
     ax.set_xlabel("Neighbourhood Degree")
     ax.set_ylabel("Change in Neighbourhood Degree")
     ax.set_title('Neighbourhood Mobility')
-    ax.legend()
+
+    default_plot_params(ax)
 
 
 def plot_assortativity(ax, taxonomy_data, color='black', curve_label=''):
-    default_plot_params(ax)
-
     individual = taxonomy_data['individual']
     neighbourhood = taxonomy_data['neighbourhood']
 
@@ -51,40 +48,37 @@ def plot_assortativity(ax, taxonomy_data, color='black', curve_label=''):
     ax.set_xlabel("Individual Degree")
     ax.set_ylabel("Average Neighbourhood Degree")
     ax.set_title('Assortativity')
-    ax.legend()
+
+    default_plot_params(ax)
 
 
 def plot_delta_assortativity(ax, taxonomy_data, color='black', curve_label=''):
-    default_plot_params(ax)
-
     delta_individual = taxonomy_data['delta_individual']
-    delta_neighbourhood = taxonomy_data['delta_neighbourhood']
+    delta_neighbourhood = taxonomy_data['delta_consistent_neighbourhood']
 
     ax.scatter(delta_individual, delta_neighbourhood,
                label=curve_label, color=color)
     ax.set_xlabel("Change in Individual Degree")
     ax.set_ylabel("Change in Average Neighbourhood Degree")
     ax.set_title('Change in Assortativity')
-    ax.legend()
+
+    default_plot_params(ax)
 
 
 def plot_philanthropy(ax, taxonomy_data, color='black', curve_label=''):
-    default_plot_params(ax)
-
     individual = taxonomy_data['individual']
-    delta_neighbourhood = taxonomy_data['delta_neighbourhood']
+    delta_neighbourhood = taxonomy_data['delta_consistent_neighbourhood']
 
     ax.scatter(individual, delta_neighbourhood, label=curve_label,
                color=color)
     ax.set_xlabel("Individual Degree")
     ax.set_ylabel("Change in Average Neighbourhood Degree")
     ax.set_title('Philanthropy')
-    ax.legend()
+
+    default_plot_params(ax)
 
 
 def plot_individuality_vs_community(ax, taxonomy_data, color='black', curve_label=''):
-    default_plot_params(ax)
-
     delta_individual = taxonomy_data['delta_individual']
     neighbourhood = taxonomy_data['neighbourhood']
 
@@ -93,12 +87,11 @@ def plot_individuality_vs_community(ax, taxonomy_data, color='black', curve_labe
     ax.set_xlabel("Change in Individual Degree")
     ax.set_ylabel("Average Neighbourhood Degree")
     ax.set_title('Individuality/Community')
-    ax.legend()
+
+    default_plot_params(ax)
 
 
 def plot_taxonomy_for_single_network(ax, taxonomy_data, plot_label=''):
-    default_plot_params(ax)
-
     individual = taxonomy_data['individual']
     delta_individual = taxonomy_data['delta_individual']
     neighbourhood = taxonomy_data['neighbourhood']
@@ -122,12 +115,12 @@ def plot_taxonomy_for_single_network(ax, taxonomy_data, plot_label=''):
     ax.set_title(f"Taxonomy for {plot_label}")
     ax.set_ylim([-1.1, 1.1])
 
-
-def plot_taxonomy_for_multiple_networks(ax, plot_data_dict, dt_percent):
     default_plot_params(ax)
 
-    x_axis_labels = ['mobility', 'assortativity', 'philanthropy',
-                     'commmunity', 'delta_assortativity', 'nbrhd_mobility']
+
+def plot_taxonomy_for_multiple_networks(ax, plot_data_dict, dt_percent):
+    x_axis_labels = ['mobility', 'assortativity', 'philanthropy', 'philanthropy_con',
+                     'commmunity', 'delta_assortativity', 'delta_assortvty_con', 'nbrhd_mobility', 'nbrhd_mobility_con']
     r = np.arange(len(x_axis_labels))
     width = 0.05
 
@@ -147,21 +140,28 @@ def plot_taxonomy_for_multiple_networks(ax, plot_data_dict, dt_percent):
         delta_individual = taxonomy_data['delta_individual']
         neighbourhood = taxonomy_data['neighbourhood']
         delta_neighbourhood = taxonomy_data['delta_neighbourhood']
+        delta_consistent_neighbourhood = taxonomy_data['delta_consistent_neighbourhood']
 
         mobility, _ = stats.pearsonr(individual, delta_individual)
         assortativity, _ = stats.pearsonr(individual, neighbourhood)
         philanthropy, _ = stats.pearsonr(individual, delta_neighbourhood)
+        philanthropy_con, _ = stats.pearsonr(
+            individual, delta_consistent_neighbourhood)
         individuality_community, _ = stats.pearsonr(
             delta_individual, neighbourhood)
         delta_assortativity, _ = stats.pearsonr(
             delta_individual, delta_neighbourhood)
+        delta_assortativity_con, _ = stats.pearsonr(
+            delta_individual, delta_consistent_neighbourhood)
         neighbourhood_mobility, _ = stats.pearsonr(
             neighbourhood, delta_neighbourhood)
+        neighbourhood_mobility_con, _ = stats.pearsonr(
+            neighbourhood, delta_consistent_neighbourhood)
 
         curve_label = f"{data_f_name}: t={t} dt={dt}"
 
         ax.bar(r + (width * td_i), [
-            mobility, assortativity, philanthropy, individuality_community, delta_assortativity, neighbourhood_mobility],
+            mobility, assortativity, philanthropy, philanthropy_con, individuality_community, delta_assortativity, delta_assortativity_con, neighbourhood_mobility, neighbourhood_mobility_con],
             width=width, label=curve_label, color=plot_colors.to_rgba(data_f_name_list.index(data_f_name)))
 
         if even:
@@ -172,13 +172,18 @@ def plot_taxonomy_for_multiple_networks(ax, plot_data_dict, dt_percent):
             td_i *= -1
             even = True
 
+    plt.xticks(r + width / len(plot_data_dict), x_axis_labels)
+    for tick in ax.xaxis.get_major_ticks()[1::2]:
+        tick.set_pad(25)
+
     ax.set_xlabel('Taxonomy', fontsize=15)
     ax.set_ylabel('Pearson Correlation Coefficient', fontsize=15)
     ax.set_title(f"Taxonomy Comparison")
     ax.set_ylim([-1.1, 1.1])
-    ax.legend()
 
-    plt.xticks(r + width / len(plot_data_dict), x_axis_labels)
+    default_plot_params(ax)
+
+    plt.tight_layout()
     plt.savefig(f"./figs/taxomony_comparison_all_dtp{dt_percent}.png")
 
 
@@ -215,6 +220,13 @@ def plot_taxonomy_for_each_network(plot_data_dict, dt_percent):
                                  taxonomy_data, plot_color, curve_label)
         plot_neighbourhood_mobility(
             ax_neighbourhood_mobility, taxonomy_data, plot_color, curve_label)
+
+    fig1.tight_layout()
+    fig2.tight_layout()
+    fig3.tight_layout()
+    fig4.tight_layout()
+    fig5.tight_layout()
+    fig6.tight_layout()
 
     fig1.savefig(f"./figs/mobility_comparison_all_dtp{dt_percent}.png")
     fig2.savefig(f"./figs/assortativity_comparison_all_dtp{dt_percent}.png")

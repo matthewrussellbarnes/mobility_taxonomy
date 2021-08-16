@@ -237,3 +237,67 @@ def plot_taxonomy_for_each_network(plot_data_dict, dt_percent):
         f"./figs/delta_assortativity_comparison_all_dtp{dt_percent}.png")
     fig6.savefig(
         f"./figs/neighbourhood_mobility_comparison_all_dtp{dt_percent}.png")
+
+
+def plot_taxonomy_pairs_for_multiple_networks(plot_data_dict, dt_percent):
+    taxonomy_data_dict = {'mobility': {}, 'assortativity': {}, 'philanthropy': {}, 'philanthropy_con': {},
+                          'community': {}, 'delta_assortativity': {}, 'delta_assortativity_con': {}, 'neighbourhood_mobility': {}, 'neighbourhood_mobility_con': {}}
+
+    data_f_name_list = list(plot_data_dict.keys())
+    plot_colors = cm.ScalarMappable(colors.Normalize(
+        0, len(data_f_name_list)), 'tab20')
+
+    for data_f_name, plot_data in plot_data_dict.items():
+
+        taxonomy_data = plot_data['taxonomy_data']
+        t = plot_data['t']
+        dt = plot_data['dt']
+        data_label = f"{data_f_name}: t={t} dt={dt}"
+
+        individual = taxonomy_data['individual']
+        delta_individual = taxonomy_data['delta_individual']
+        neighbourhood = taxonomy_data['neighbourhood']
+        delta_neighbourhood = taxonomy_data['delta_neighbourhood']
+        delta_consistent_neighbourhood = taxonomy_data['delta_consistent_neighbourhood']
+
+        taxonomy_data_dict['mobility'][data_label], _ = stats.pearsonr(
+            individual, delta_individual)
+        taxonomy_data_dict['assortativity'][data_label], _ = stats.pearsonr(
+            individual, neighbourhood)
+        taxonomy_data_dict['philanthropy'][data_label], _ = stats.pearsonr(
+            individual, delta_neighbourhood)
+        taxonomy_data_dict['philanthropy_con'][data_label], _ = stats.pearsonr(
+            individual, delta_consistent_neighbourhood)
+        taxonomy_data_dict['community'][data_label], _ = stats.pearsonr(
+            delta_individual, neighbourhood)
+        taxonomy_data_dict['delta_assortativity'][data_label], _ = stats.pearsonr(
+            delta_individual, delta_neighbourhood)
+        taxonomy_data_dict['delta_assortativity_con'][data_label], _ = stats.pearsonr(
+            delta_individual, delta_consistent_neighbourhood)
+        taxonomy_data_dict['neighbourhood_mobility'][data_label], _ = stats.pearsonr(
+            neighbourhood, delta_neighbourhood)
+        taxonomy_data_dict['neighbourhood_mobility_con'][data_label], _ = stats.pearsonr(
+            neighbourhood, delta_consistent_neighbourhood)
+
+    used_taxonomies = []
+    for x_label, x_data in taxonomy_data_dict.items():
+        used_taxonomies.append(x_label)
+        filtered_tdd = dict(
+            filter(lambda x: x[0] not in used_taxonomies, taxonomy_data_dict.items()))
+        for y_label, y_data in filtered_tdd.items():
+            _, ax = plt.subplots(1, 1, figsize=(15, 10))
+            for d_label, x_corr in x_data.items():
+                y_corr = y_data[d_label]
+                ax.scatter(x_corr, y_corr, label=d_label, color=plot_colors.to_rgba(
+                    data_f_name_list.index(d_label[:d_label.index(':')])))
+            ax.set_xlabel(x_label, fontsize=15)
+            ax.set_ylabel(y_label, fontsize=15)
+            ax.set_title(f"{x_label} vs {y_label} Correlation Comparison")
+            ax.set_xlim([-1.1, 1.1])
+            ax.set_ylim([-1.1, 1.1])
+
+            default_plot_params(ax)
+
+            plt.tight_layout()
+            plt.savefig(
+                f"./figs/pair_taxonomy_comparison/{x_label}_{y_label}_comparison_dtp{dt_percent}.png")

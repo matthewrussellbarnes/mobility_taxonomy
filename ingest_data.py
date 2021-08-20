@@ -9,7 +9,7 @@ def ingest_data(data_f_name, first_row=None, max_rows=None):
     data_path = os.path.join(utilities.dataset_path, f"{data_f_name}.csv")
 
     network_df = pd.DataFrame(columns=['n1', 'n2', 'creation_time'])
-    with open(data_path) as csvfile:
+    with open(data_path, encoding='utf-8-sig') as csvfile:
         reader = csv.DictReader(csvfile, delimiter=' ')
         r = 0
         for row in reader:

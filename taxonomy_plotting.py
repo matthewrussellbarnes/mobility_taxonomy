@@ -119,10 +119,10 @@ def plot_taxonomy_for_single_network(ax, taxonomy_data, plot_label=''):
 
 
 def plot_taxonomy_for_multiple_networks(ax, plot_data_dict, dt_percent):
-    x_axis_labels = ['mobility', 'assortativity', 'philanthropy', 'philanthropy_con',
-                     'commmunity', 'delta_assortativity', 'delta_assortvty_con', 'nbrhd_mobility', 'nbrhd_mobility_con']
+    x_axis_labels = ['mobility', 'assortativity', 'philanthropy',
+                     'commmunity', 'delta_assortativity', 'nbrhd_mobility']
     r = np.arange(len(x_axis_labels))
-    width = 0.05
+    width = 0.03
 
     data_f_name_list = list(plot_data_dict.keys())
     plot_colors = cm.ScalarMappable(colors.Normalize(
@@ -139,29 +139,29 @@ def plot_taxonomy_for_multiple_networks(ax, plot_data_dict, dt_percent):
         individual = taxonomy_data['individual']
         delta_individual = taxonomy_data['delta_individual']
         neighbourhood = taxonomy_data['neighbourhood']
-        delta_neighbourhood = taxonomy_data['delta_neighbourhood']
+        # delta_neighbourhood = taxonomy_data['delta_neighbourhood']
         delta_consistent_neighbourhood = taxonomy_data['delta_consistent_neighbourhood']
 
         mobility, _ = stats.pearsonr(individual, delta_individual)
         assortativity, _ = stats.pearsonr(individual, neighbourhood)
-        philanthropy, _ = stats.pearsonr(individual, delta_neighbourhood)
+        # philanthropy, _ = stats.pearsonr(individual, delta_neighbourhood)
         philanthropy_con, _ = stats.pearsonr(
             individual, delta_consistent_neighbourhood)
         individuality_community, _ = stats.pearsonr(
             delta_individual, neighbourhood)
-        delta_assortativity, _ = stats.pearsonr(
-            delta_individual, delta_neighbourhood)
+        # delta_assortativity, _ = stats.pearsonr(
+        # delta_individual, delta_neighbourhood)
         delta_assortativity_con, _ = stats.pearsonr(
             delta_individual, delta_consistent_neighbourhood)
-        neighbourhood_mobility, _ = stats.pearsonr(
-            neighbourhood, delta_neighbourhood)
+        # neighbourhood_mobility, _ = stats.pearsonr(
+        # neighbourhood, delta_neighbourhood)
         neighbourhood_mobility_con, _ = stats.pearsonr(
             neighbourhood, delta_consistent_neighbourhood)
 
         curve_label = f"{data_f_name}: t={t} dt={dt}"
 
         ax.bar(r + (width * td_i), [
-            mobility, assortativity, philanthropy, philanthropy_con, individuality_community, delta_assortativity, delta_assortativity_con, neighbourhood_mobility, neighbourhood_mobility_con],
+            mobility, assortativity, philanthropy_con, individuality_community, delta_assortativity_con, neighbourhood_mobility_con],
             width=width, label=curve_label, color=plot_colors.to_rgba(data_f_name_list.index(data_f_name)))
 
         if even:

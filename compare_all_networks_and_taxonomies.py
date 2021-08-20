@@ -17,7 +17,7 @@ for dt_percent in dt_percent_list:
 
     plot_data = {}
     for _, dirs, files in os.walk(utilities.dataset_path, topdown=True):
-        dirs[:] = [d for d in dirs if d != 'do_not_import']
+        dirs[:] = [d for d in dirs if d != 'archive']
         filtered_files = filter(lambda file: not file.startswith('.'), files)
         for file in filtered_files:
             data_f_name = os.path.splitext(file)[0]

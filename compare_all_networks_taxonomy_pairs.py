@@ -10,7 +10,7 @@ import utilities
 
 utilities.init()
 
-dt_percent_list = [10]  # , 25, 50, 75]
+dt_percent_list = [10, 25, 50, 75]
 for dt_percent in dt_percent_list:
     plot_data = {}
     for _, dirs, files in os.walk(utilities.dataset_path, topdown=True):

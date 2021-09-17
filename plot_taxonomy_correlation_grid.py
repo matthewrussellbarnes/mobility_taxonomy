@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 import os
 import pandas as pd
 import math
-import numpy as np
 
 import ingest_data
 import build_taxonomy
@@ -43,4 +42,5 @@ for dt_percent in dt_percent_list:
                 'dt': dt
             }
 
-    taxonomy_plotting.plot_taxonomy_for_each_network(plot_data, dt_percent)
+    taxonomy_plotting.plot_grid_taxonomy_correlations(
+        plot_data, dt_percent)

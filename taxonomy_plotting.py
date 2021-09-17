@@ -13,6 +13,39 @@ def default_plot_params(ax):
     ax.legend(bbox_to_anchor=(0.5, -0.2), loc='upper center', ncol=3)
 
 
+def build_taxonomy_data_dict(plot_data_dict):
+    taxonomy_data_dict = {'mobility': {}, 'assortativity': {}, 'philanthropy': {},
+                          'community': {}, 'delta_assortativity': {}, 'neighbourhood_mobility': {}}
+
+    for data_f_name, plot_data in plot_data_dict.items():
+
+        taxonomy_data = plot_data['taxonomy_data']
+        t = plot_data['t']
+        dt = plot_data['dt']
+        data_label = f"{data_f_name}: t={t} dt={dt}"
+
+        individual = taxonomy_data['individual']
+        delta_individual = taxonomy_data['delta_individual']
+        neighbourhood = taxonomy_data['neighbourhood']
+        delta_neighbourhood = taxonomy_data['delta_neighbourhood']
+        delta_consistent_neighbourhood = taxonomy_data['delta_consistent_neighbourhood']
+
+        taxonomy_data_dict['mobility'][data_label], _ = stats.pearsonr(
+            individual, delta_individual)
+        taxonomy_data_dict['assortativity'][data_label], _ = stats.pearsonr(
+            individual, neighbourhood)
+        taxonomy_data_dict['philanthropy'][data_label], _ = stats.pearsonr(
+            individual, delta_neighbourhood)
+        taxonomy_data_dict['community'][data_label], _ = stats.pearsonr(
+            delta_individual, neighbourhood)
+        taxonomy_data_dict['delta_assortativity'][data_label], _ = stats.pearsonr(
+            delta_individual, delta_neighbourhood)
+        taxonomy_data_dict['neighbourhood_mobility'][data_label], _ = stats.pearsonr(
+            neighbourhood, delta_neighbourhood)
+
+    return taxonomy_data_dict
+
+
 def plot_mobility(ax, taxonomy_data, color='black', curve_label=''):
     individual = taxonomy_data['individual']
     delta_individual = taxonomy_data['delta_individual']
@@ -240,44 +273,11 @@ def plot_taxonomy_for_each_network(plot_data_dict, dt_percent):
 
 
 def plot_taxonomy_pairs_for_multiple_networks(plot_data_dict, dt_percent):
-    taxonomy_data_dict = {'mobility': {}, 'assortativity': {}, 'philanthropy': {}, 'philanthropy_con': {},
-                          'community': {}, 'delta_assortativity': {}, 'delta_assortativity_con': {}, 'neighbourhood_mobility': {}, 'neighbourhood_mobility_con': {}}
+    taxonomy_data_dict = build_taxonomy_data_dict(plot_data_dict)
 
     data_f_name_list = list(plot_data_dict.keys())
     plot_colors = cm.ScalarMappable(colors.Normalize(
         0, len(data_f_name_list)), 'tab20')
-
-    for data_f_name, plot_data in plot_data_dict.items():
-
-        taxonomy_data = plot_data['taxonomy_data']
-        t = plot_data['t']
-        dt = plot_data['dt']
-        data_label = f"{data_f_name}: t={t} dt={dt}"
-
-        individual = taxonomy_data['individual']
-        delta_individual = taxonomy_data['delta_individual']
-        neighbourhood = taxonomy_data['neighbourhood']
-        delta_neighbourhood = taxonomy_data['delta_neighbourhood']
-        delta_consistent_neighbourhood = taxonomy_data['delta_consistent_neighbourhood']
-
-        taxonomy_data_dict['mobility'][data_label], _ = stats.pearsonr(
-            individual, delta_individual)
-        taxonomy_data_dict['assortativity'][data_label], _ = stats.pearsonr(
-            individual, neighbourhood)
-        taxonomy_data_dict['philanthropy'][data_label], _ = stats.pearsonr(
-            individual, delta_neighbourhood)
-        taxonomy_data_dict['philanthropy_con'][data_label], _ = stats.pearsonr(
-            individual, delta_consistent_neighbourhood)
-        taxonomy_data_dict['community'][data_label], _ = stats.pearsonr(
-            delta_individual, neighbourhood)
-        taxonomy_data_dict['delta_assortativity'][data_label], _ = stats.pearsonr(
-            delta_individual, delta_neighbourhood)
-        taxonomy_data_dict['delta_assortativity_con'][data_label], _ = stats.pearsonr(
-            delta_individual, delta_consistent_neighbourhood)
-        taxonomy_data_dict['neighbourhood_mobility'][data_label], _ = stats.pearsonr(
-            neighbourhood, delta_neighbourhood)
-        taxonomy_data_dict['neighbourhood_mobility_con'][data_label], _ = stats.pearsonr(
-            neighbourhood, delta_consistent_neighbourhood)
 
     used_taxonomies = []
     for x_label, x_data in taxonomy_data_dict.items():
@@ -301,3 +301,58 @@ def plot_taxonomy_pairs_for_multiple_networks(plot_data_dict, dt_percent):
             plt.tight_layout()
             plt.savefig(
                 f"./figs/pair_taxonomy_comparison/{x_label}_{y_label}_comparison_dtp{dt_percent}.png")
+
+
+def plot_grid_taxonomy_correlations(plot_data_dict, dt_percent):
+    taxonomy_data_dict = build_taxonomy_data_dict(plot_data_dict)
+    plot_labels = list(taxonomy_data_dict.keys())
+
+    grid_correlations = []
+    grid_r_square = []
+    for x_label, x_data in taxonomy_data_dict.items():
+        grid_c_line = []
+        grid_r_line = []
+        for y_label, y_data in taxonomy_data_dict.items():
+            if y_label == x_label:
+                grid_c_line.append(0)
+                grid_r_line.append(0)
+            else:
+                correlation, _ = stats.pearsonr(
+                    list(x_data.values()), list(y_data.values()))
+                grid_c_line.append(correlation)
+
+                grid_r_line.append(
+                    r2_score(list(x_data.values()), list(y_data.values())))
+
+        grid_correlations.append(grid_c_line)
+        grid_r_square.append(grid_r_line)
+
+    for plot_name, grid_data in {'correlation': grid_correlations, 'R2': grid_r_square}.items():
+        fig, ax = plt.subplots(1, 1, figsize=(15, 10))
+        if plot_name == 'correlation':
+            im = ax.imshow(grid_data, cmap='bwr')
+            im.set_clim(-1, 1)
+        else:
+            im = ax.imshow(grid_data, cmap='Wistia')
+
+        ax.set_title(f"Taxonomy {plot_name} Grid {dt_percent}")
+
+        for pos_x in range(len(grid_data)):
+            for pos_y in range(len(grid_data[pos_x])):
+                label = round(grid_data[pos_x][pos_y], 2)
+                ax.text(pos_x, pos_y, label, color='black',
+                        ha='center', va='center', fontsize=15)
+
+        ax.set_xticklabels(plot_labels)
+        ax.set_xticks([0, 1, 2, 3, 4, 5])
+        ax.set_yticklabels(plot_labels)
+        ax.set_yticks([0, 1, 2, 3, 4, 5])
+
+        ax.tick_params(axis='both', labelsize=15)
+        for tick in ax.xaxis.get_major_ticks()[1::2]:
+            tick.set_pad(25)
+
+        fig.colorbar(im)
+        plt.tight_layout()
+        plt.savefig(
+            f"./figs/grid_{plot_name}_dt{dt_percent}.png")

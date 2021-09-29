@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 
 figs_path = os.path.join(os.getcwd(), 'figs/')
 taxonomy_data_path = os.path.join(os.getcwd(), 'taxonomies')
+taxonomy_data_path = os.path.join(os.getcwd(), 'equality')
 dataset_path = os.path.join(os.getcwd(), 'datasets')
 
 

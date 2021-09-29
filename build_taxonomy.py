@@ -4,6 +4,7 @@ import datetime
 import math
 
 import utilities
+import compute_equality
 
 
 def create_taxonomy_data_file(f_name, taxonomy_df):
@@ -13,6 +14,15 @@ def create_taxonomy_data_file(f_name, taxonomy_df):
     if not taxonomy_data_f_path:
         path = f"{utilities.taxonomy_data_path}/{f_name}_{str(datetime.datetime.now().strftime('%Y-%m-%d-%H%M'))}.txt"
         taxonomy_df.to_csv(path, index=False)
+
+
+def create_equality_data_file(f_name, equality_df):
+    equality_data_f_path = utilities.get_file_path(
+        f_name, utilities.equality_data_path)
+
+    if not equality_data_f_path:
+        path = f"{utilities.equality_data_path}/{f_name}_{str(datetime.datetime.now().strftime('%Y-%m-%d-%H%M'))}.txt"
+        equality_df.to_csv(path, index=False)
 
 
 def build_taxonomy(network_df, t, delta_t_percent, data_f_name):
@@ -33,10 +43,15 @@ def build_taxonomy(network_df, t, delta_t_percent, data_f_name):
     timestamp = grouped_network_df.at[t, 0]
     prev_timestamp = grouped_network_df.at[prev_t, 0]
 
+    equality_df = pd.DataFrame(columns=['iteration', 'gini_coeff'])
+
     for creation_time, index_list in network_df_groupby.groups.items():
         for index in index_list:
             row = network_df.loc[index].values
             G.add_edge(row[0], row[1])
+
+        equality_df.loc[len(equality_df.index)] = [
+            creation_time, compute_equality.gini_coeff(dict(G.degree))]
 
         if creation_time == prev_timestamp:
             prev_t_individual = dict(G.degree)
@@ -74,5 +89,8 @@ def build_taxonomy(network_df, t, delta_t_percent, data_f_name):
 
     create_taxonomy_data_file(
         f"{data_f_name}_dtp{delta_t_percent}_ti{t}", taxonomy_df)
+
+    create_equality_data_file(
+        f"{data_f_name}_dtp{delta_t_percent}_ti{t}", equality_df)
 
     return taxonomy_df, t

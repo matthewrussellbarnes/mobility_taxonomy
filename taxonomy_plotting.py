@@ -22,7 +22,9 @@ def build_taxonomy_data_dict(plot_data_dict):
         taxonomy_data = plot_data['taxonomy_data']
         t = plot_data['t']
         dt = plot_data['dt']
-        data_label = f"{data_f_name}: t={t} dt={dt}"
+        data_type = plot_data['data_type']
+
+        data_label = f"{data_f_name}: t={t} dt={dt} #{data_type}"
 
         individual = taxonomy_data['individual']
         delta_individual = taxonomy_data['delta_individual']
@@ -44,6 +46,47 @@ def build_taxonomy_data_dict(plot_data_dict):
             neighbourhood, delta_neighbourhood)
 
     return taxonomy_data_dict
+
+
+def taxonomy_correlation_R2(taxonomy_data_dict):
+    grid_correlations = []
+    grid_r_square = []
+    for x_label, x_data in taxonomy_data_dict.items():
+        grid_c_line = []
+        grid_r_line = []
+        for y_label, y_data in taxonomy_data_dict.items():
+            if y_label == x_label:
+                grid_c_line.append(0)
+                grid_r_line.append(0)
+            else:
+                correlation, _ = stats.pearsonr(
+                    list(x_data.values()), list(y_data.values()))
+                grid_c_line.append(correlation)
+
+                grid_r_line.append(
+                    r2_score(list(x_data.values()), list(y_data.values())))
+
+        grid_correlations.append(grid_c_line)
+        grid_r_square.append(grid_r_line)
+
+    return grid_correlations, grid_r_square
+
+
+def PCA(X, num_components):
+
+    X_meaned = X - np.mean(X, axis=0)
+    print(X_meaned[0])
+    cov_mat = np.cov(X_meaned, rowvar=False)
+    eigen_values, eigen_vectors = np.linalg.eigh(cov_mat)
+
+    sorted_index = np.argsort(eigen_values)[::-1]
+    sorted_eigenvectors = eigen_vectors[:, sorted_index]
+    eigenvector_subset = sorted_eigenvectors[:, 0:num_components]
+
+    X_reduced = np.dot(eigenvector_subset.transpose(),
+                       X_meaned.transpose()).transpose()
+
+    return X_reduced
 
 
 def plot_mobility(ax, taxonomy_data, color='black', curve_label=''):
@@ -157,9 +200,10 @@ def plot_taxonomy_for_multiple_networks(ax, plot_data_dict, dt_percent):
     r = np.arange(len(x_axis_labels))
     width = 0.03
 
-    data_f_name_list = list(plot_data_dict.keys())
+    data_type_list = list(dict.fromkeys([pdd['data_type']
+                                         for pdd in list(plot_data_dict.values())]))
     plot_colors = cm.ScalarMappable(colors.Normalize(
-        0, len(data_f_name_list)), 'tab20')
+        0, len(data_type_list)), 'tab20')
 
     td_i = 0
     even = True
@@ -168,6 +212,7 @@ def plot_taxonomy_for_multiple_networks(ax, plot_data_dict, dt_percent):
         taxonomy_data = plot_data['taxonomy_data']
         t = plot_data['t']
         dt = plot_data['dt']
+        data_type = plot_data['data_type']
 
         individual = taxonomy_data['individual']
         delta_individual = taxonomy_data['delta_individual']
@@ -191,11 +236,11 @@ def plot_taxonomy_for_multiple_networks(ax, plot_data_dict, dt_percent):
         neighbourhood_mobility_con, _ = stats.pearsonr(
             neighbourhood, delta_consistent_neighbourhood)
 
-        curve_label = f"{data_f_name}: t={t} dt={dt}"
+        curve_label = f"{data_f_name}: t={t} dt={dt} {data_type}"
 
         ax.bar(r + (width * td_i), [
             mobility, assortativity, philanthropy_con, individuality_community, delta_assortativity_con, neighbourhood_mobility_con],
-            width=width, label=curve_label, color=plot_colors.to_rgba(data_f_name_list.index(data_f_name)))
+            width=width, label=curve_label, color=plot_colors.to_rgba(data_type_list.index(data_type)))
 
         if even:
             td_i = abs(td_i)
@@ -217,7 +262,7 @@ def plot_taxonomy_for_multiple_networks(ax, plot_data_dict, dt_percent):
     default_plot_params(ax)
 
     plt.tight_layout()
-    plt.savefig(f"./figs/taxomony_comparison_all_dtp{dt_percent}.png")
+    plt.savefig(f"./figs/taxomony_type_comparison_all_dtp{dt_percent}.png")
 
 
 def plot_taxonomy_for_each_network(plot_data_dict, dt_percent):
@@ -275,9 +320,10 @@ def plot_taxonomy_for_each_network(plot_data_dict, dt_percent):
 def plot_taxonomy_pairs_for_multiple_networks(plot_data_dict, dt_percent):
     taxonomy_data_dict = build_taxonomy_data_dict(plot_data_dict)
 
-    data_f_name_list = list(plot_data_dict.keys())
+    data_type_list = list(dict.fromkeys([pdd['data_type']
+                                         for pdd in list(plot_data_dict.values())]))
     plot_colors = cm.ScalarMappable(colors.Normalize(
-        0, len(data_f_name_list)), 'tab20')
+        0, len(data_type_list)), 'tab20')
 
     used_taxonomies = []
     for x_label, x_data in taxonomy_data_dict.items():
@@ -289,7 +335,7 @@ def plot_taxonomy_pairs_for_multiple_networks(plot_data_dict, dt_percent):
             for d_label, x_corr in x_data.items():
                 y_corr = y_data[d_label]
                 ax.scatter(x_corr, y_corr, label=d_label, color=plot_colors.to_rgba(
-                    data_f_name_list.index(d_label[:d_label.index(':')])))
+                    data_type_list.index(d_label[d_label.index('#') + 1:])))
             ax.set_xlabel(x_label, fontsize=15)
             ax.set_ylabel(y_label, fontsize=15)
             ax.set_title(f"{x_label} vs {y_label} Correlation Comparison")
@@ -300,32 +346,15 @@ def plot_taxonomy_pairs_for_multiple_networks(plot_data_dict, dt_percent):
 
             plt.tight_layout()
             plt.savefig(
-                f"./figs/pair_taxonomy_comparison/{x_label}_{y_label}_comparison_dtp{dt_percent}.png")
+                f"./figs/pair_taxonomy_type_comparison/{x_label}_{y_label}_comparison_dtp{dt_percent}.png")
 
 
 def plot_grid_taxonomy_correlations(plot_data_dict, dt_percent):
     taxonomy_data_dict = build_taxonomy_data_dict(plot_data_dict)
     plot_labels = list(taxonomy_data_dict.keys())
 
-    grid_correlations = []
-    grid_r_square = []
-    for x_label, x_data in taxonomy_data_dict.items():
-        grid_c_line = []
-        grid_r_line = []
-        for y_label, y_data in taxonomy_data_dict.items():
-            if y_label == x_label:
-                grid_c_line.append(0)
-                grid_r_line.append(0)
-            else:
-                correlation, _ = stats.pearsonr(
-                    list(x_data.values()), list(y_data.values()))
-                grid_c_line.append(correlation)
-
-                grid_r_line.append(
-                    r2_score(list(x_data.values()), list(y_data.values())))
-
-        grid_correlations.append(grid_c_line)
-        grid_r_square.append(grid_r_line)
+    grid_correlations, grid_r_square = taxonomy_correlation_R2(
+        taxonomy_data_dict)
 
     for plot_name, grid_data in {'correlation': grid_correlations, 'R2': grid_r_square}.items():
         fig, ax = plt.subplots(1, 1, figsize=(15, 10))
@@ -356,3 +385,45 @@ def plot_grid_taxonomy_correlations(plot_data_dict, dt_percent):
         plt.tight_layout()
         plt.savefig(
             f"./figs/grid_{plot_name}_dt{dt_percent}.png")
+
+
+def plot_taxonomy_pca(plot_data_dict, dt_percent):
+    taxonomy_data_dict = build_taxonomy_data_dict(plot_data_dict)
+
+    data_type_list = list(dict.fromkeys([pdd['data_type']
+                                         for pdd in list(plot_data_dict.values())]))
+    plot_colors = cm.ScalarMappable(colors.Normalize(
+        0, len(data_type_list)), 'tab20')
+
+    taxonomy_data_per_dataset = {}
+    for aspect in list(taxonomy_data_dict.values()):
+        for dataset, aspect_entry in aspect.items():
+            if dataset in taxonomy_data_per_dataset:
+                taxonomy_data_per_dataset[dataset].append(aspect_entry)
+            else:
+                taxonomy_data_per_dataset[dataset] = [aspect_entry]
+
+    pca_taxonomy = PCA(list(taxonomy_data_per_dataset.values()), 6)
+
+    named_pca_taxonomy = {}
+    for i in range(len(pca_taxonomy)):
+        named_pca_taxonomy[list(taxonomy_data_per_dataset.keys())
+                           [i]] = pca_taxonomy[i]
+    print(named_pca_taxonomy)
+
+    _, ax = plt.subplots(1, 1, figsize=(15, 10))
+    for d_label, coor in named_pca_taxonomy.items():
+        ax.scatter(coor[0], coor[1], label=d_label, color=plot_colors.to_rgba(
+            data_type_list.index(d_label[d_label.index('#') + 1:])))
+
+    ax.set_xlabel('x', fontsize=15)
+    ax.set_ylabel('y', fontsize=15)
+    ax.set_title('PCA')
+    ax.set_xlim([-1.1, 1.1])
+    ax.set_ylim([-1.1, 1.1])
+
+    default_plot_params(ax)
+
+    plt.tight_layout()
+    plt.savefig(
+        f"./figs/PCA_dtp{dt_percent}.png")

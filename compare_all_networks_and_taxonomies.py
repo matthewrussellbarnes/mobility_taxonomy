@@ -16,12 +16,13 @@ for dt_percent in dt_percent_list:
     _, ax = plt.subplots(1, 1, figsize=(15, 10))
 
     plot_data = {}
-    for _, dirs, files in os.walk(utilities.dataset_path, topdown=True):
+    for dirpath, dirs, files in os.walk(utilities.dataset_path, topdown=True):
         dirs[:] = [d for d in dirs if d != 'archive']
         filtered_files = filter(lambda file: not file.startswith('.'), files)
         for file in filtered_files:
             data_f_name = os.path.splitext(file)[0]
             print(data_f_name)
+            data_type = os.path.basename(dirpath)
 
             taxonomy_data_f_path = utilities.get_file_path(
                 f"{data_f_name}_dtp{dt_percent}", utilities.taxonomy_data_path)
@@ -42,7 +43,8 @@ for dt_percent in dt_percent_list:
             plot_data[data_f_name] = {
                 'taxonomy_data': taxonomy_df,
                 't': t,
-                'dt': dt
+                'dt': dt,
+                'data_type': data_type
             }
 
     taxonomy_plotting.plot_taxonomy_for_multiple_networks(

@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from matplotlib import cm, colors
 
+from sklearn.metrics import r2_score
 import scipy.stats as stats
 import numpy as np
 
@@ -72,11 +73,11 @@ def taxonomy_correlation_R2(taxonomy_data_dict):
     return grid_correlations, grid_r_square
 
 
-def PCA(X, num_components):
-
+def PCA(X, num_components, cov_mat=None):
     X_meaned = X - np.mean(X, axis=0)
-    print(X_meaned[0])
-    cov_mat = np.cov(X_meaned, rowvar=False)
+    if not cov_mat:
+        cov_mat = np.cov(X_meaned, rowvar=False)
+
     eigen_values, eigen_vectors = np.linalg.eigh(cov_mat)
 
     sorted_index = np.argsort(eigen_values)[::-1]
@@ -395,6 +396,8 @@ def plot_taxonomy_pca(plot_data_dict, dt_percent):
     plot_colors = cm.ScalarMappable(colors.Normalize(
         0, len(data_type_list)), 'tab20')
 
+    corr_mat, _ = taxonomy_correlation_R2(taxonomy_data_dict)
+
     taxonomy_data_per_dataset = {}
     for aspect in list(taxonomy_data_dict.values()):
         for dataset, aspect_entry in aspect.items():
@@ -403,13 +406,12 @@ def plot_taxonomy_pca(plot_data_dict, dt_percent):
             else:
                 taxonomy_data_per_dataset[dataset] = [aspect_entry]
 
-    pca_taxonomy = PCA(list(taxonomy_data_per_dataset.values()), 6)
+    pca_taxonomy = PCA(list(taxonomy_data_per_dataset.values()), 6, corr_mat)
 
     named_pca_taxonomy = {}
     for i in range(len(pca_taxonomy)):
         named_pca_taxonomy[list(taxonomy_data_per_dataset.keys())
                            [i]] = pca_taxonomy[i]
-    print(named_pca_taxonomy)
 
     _, ax = plt.subplots(1, 1, figsize=(15, 10))
     for d_label, coor in named_pca_taxonomy.items():
@@ -426,4 +428,4 @@ def plot_taxonomy_pca(plot_data_dict, dt_percent):
 
     plt.tight_layout()
     plt.savefig(
-        f"./figs/PCA_dtp{dt_percent}.png")
+        f"./figs/PCA_corr_dtp{dt_percent}.png")

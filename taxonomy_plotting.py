@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 from matplotlib import cm, colors
 
 from sklearn.metrics import r2_score
+from sklearn.cluster import AgglomerativeClustering
+
 import scipy.stats as stats
 import numpy as np
 
@@ -88,6 +90,15 @@ def PCA(X, num_components, cov_mat=None):
                        X_meaned.transpose()).transpose()
 
     return X_reduced
+
+
+def clustering(X, n_clusters):
+    hc = AgglomerativeClustering(
+        n_clusters=n_clusters, affinity='euclidean', linkage='ward')
+
+    y_hc = hc.fit_predict(X)
+
+    return y_hc
 
 
 def plot_mobility(ax, taxonomy_data, color='black', curve_label=''):
@@ -406,17 +417,22 @@ def plot_taxonomy_pca(plot_data_dict, dt_percent):
             else:
                 taxonomy_data_per_dataset[dataset] = [aspect_entry]
 
-    pca_taxonomy = PCA(list(taxonomy_data_per_dataset.values()), 6, corr_mat)
+    # data_f_name_list = list(taxonomy_data_per_dataset.keys())
+    # plot_colors = cm.ScalarMappable(colors.Normalize(
+    #     0, len(data_f_name_list)), 'hsv')
+
+    pca_taxonomy = PCA(list(taxonomy_data_per_dataset.values()), 2, corr_mat)
 
     named_pca_taxonomy = {}
     for i in range(len(pca_taxonomy)):
         named_pca_taxonomy[list(taxonomy_data_per_dataset.keys())
-                           [i]] = pca_taxonomy[i]
+                           [i]] = list(pca_taxonomy[i])
 
     _, ax = plt.subplots(1, 1, figsize=(15, 10))
     for d_label, coor in named_pca_taxonomy.items():
         ax.scatter(coor[0], coor[1], label=d_label, color=plot_colors.to_rgba(
             data_type_list.index(d_label[d_label.index('#') + 1:])))
+        # data_f_name_list.index(d_label)))
 
     ax.set_xlabel('x', fontsize=15)
     ax.set_ylabel('y', fontsize=15)
@@ -427,5 +443,35 @@ def plot_taxonomy_pca(plot_data_dict, dt_percent):
     default_plot_params(ax)
 
     plt.tight_layout()
+    plot_name = f'PCA_corr_dtp{dt_percent}'
     plt.savefig(
-        f"./figs/PCA_corr_dtp{dt_percent}.png")
+        f"./figs/{plot_name}.png")
+
+    for ncncnc in range(8):
+        cluster_plot(list(named_pca_taxonomy.values()), ncncnc + 2,
+                     plot_name)
+
+
+def cluster_plot(points, n_cluster, plot_name, x_label='x', y_label='y'):
+    points = np.array(points)
+    cluster_mat = clustering(points, n_cluster)
+
+    plot_colors = cm.ScalarMappable(colors.Normalize(
+        0, n_cluster), 'tab20')
+
+    _, ax = plt.subplots(1, 1, figsize=(15, 10))
+    for nc in range(n_cluster):
+        ax.scatter(points[cluster_mat == nc, 0], points[cluster_mat ==
+                                                        nc, 1], s=100, label=f"cluster{nc}", color=plot_colors.to_rgba(nc))
+
+    ax.set_xlabel(x_label, fontsize=15)
+    ax.set_ylabel(y_label, fontsize=15)
+    ax.set_title('Clustering')
+    ax.set_xlim([-1.1, 1.1])
+    ax.set_ylim([-1.1, 1.1])
+
+    default_plot_params(ax)
+
+    plt.tight_layout()
+    plt.savefig(
+        f"./figs/clusters/cluster_{plot_name}_nc{n_cluster}.png")

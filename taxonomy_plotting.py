@@ -396,18 +396,22 @@ def plot_grid_taxonomy_correlations(plot_data_dict, dt_percent):
         fig.colorbar(im)
         plt.tight_layout()
         plt.savefig(
-            f"./figs/grid_{plot_name}_dt{dt_percent}.png")
+            f"./figs/taxonomy_grid/grid_{plot_name}_dt{dt_percent}.png")
 
 
-def plot_taxonomy_pca(plot_data_dict, dt_percent):
+def plot_taxonomy_pca(plot_data_dict, dt_percent, pca_type='corr', clustering_type='aggl'):
     taxonomy_data_dict = build_taxonomy_data_dict(plot_data_dict)
 
-    data_type_list = list(dict.fromkeys([pdd['data_type']
-                                         for pdd in list(plot_data_dict.values())]))
-    plot_colors = cm.ScalarMappable(colors.Normalize(
-        0, len(data_type_list)), 'tab20')
+    if clustering_type == 'data_type':
+        data_type_list = list(dict.fromkeys([pdd['data_type']
+                                             for pdd in list(plot_data_dict.values())]))
+        plot_colors = cm.ScalarMappable(colors.Normalize(
+            0, len(data_type_list)), 'tab20')
 
-    corr_mat, _ = taxonomy_correlation_R2(taxonomy_data_dict)
+    if pca_type == 'corr':
+        corr_mat, _ = taxonomy_correlation_R2(taxonomy_data_dict)
+    else:
+        corr_mat = None
 
     taxonomy_data_per_dataset = {}
     for aspect in list(taxonomy_data_dict.values()):
@@ -417,9 +421,16 @@ def plot_taxonomy_pca(plot_data_dict, dt_percent):
             else:
                 taxonomy_data_per_dataset[dataset] = [aspect_entry]
 
-    # data_f_name_list = list(taxonomy_data_per_dataset.keys())
-    # plot_colors = cm.ScalarMappable(colors.Normalize(
-    #     0, len(data_f_name_list)), 'hsv')
+    if clustering_type == 'f_name':
+        data_f_name_list = list(taxonomy_data_per_dataset.keys())
+        plot_colors = cm.ScalarMappable(colors.Normalize(
+            0, len(data_f_name_list)), 'hsv')
+    elif clustering_type == 'aggl':
+        n_cluster = 6
+        cluster_mat = clustering(
+            np.array(list(taxonomy_data_per_dataset.values())), n_cluster)
+        plot_colors = cm.ScalarMappable(colors.Normalize(
+            0, n_cluster), 'tab20')
 
     pca_taxonomy = PCA(list(taxonomy_data_per_dataset.values()), 2, corr_mat)
 
@@ -430,9 +441,18 @@ def plot_taxonomy_pca(plot_data_dict, dt_percent):
 
     _, ax = plt.subplots(1, 1, figsize=(15, 10))
     for d_label, coor in named_pca_taxonomy.items():
-        ax.scatter(coor[0], coor[1], label=d_label, color=plot_colors.to_rgba(
-            data_type_list.index(d_label[d_label.index('#') + 1:])))
-        # data_f_name_list.index(d_label)))
+        if clustering_type == 'data_type':
+            ax.scatter(coor[0], coor[1], label=d_label, color=plot_colors.to_rgba(
+                data_type_list.index(d_label[d_label.index('#') + 1:])))
+        elif clustering_type == 'f_name':
+            ax.scatter(coor[0], coor[1], label=d_label, color=plot_colors.to_rgba(
+                data_f_name_list.index(d_label)))
+
+    if clustering_type == 'aggl':
+        for nc in range(n_cluster):
+            points = np.array(list(named_pca_taxonomy.values()))
+            ax.scatter(points[cluster_mat == nc, 0], points[cluster_mat ==
+                                                            nc, 1], s=100, label=f"cluster{nc}", color=plot_colors.to_rgba(nc))
 
     ax.set_xlabel('x', fontsize=15)
     ax.set_ylabel('y', fontsize=15)
@@ -443,13 +463,15 @@ def plot_taxonomy_pca(plot_data_dict, dt_percent):
     default_plot_params(ax)
 
     plt.tight_layout()
-    plot_name = f'PCA_corr_dtp{dt_percent}'
+    plot_name = f'PCA{pca_type}_ct{clustering_type}_dtp{dt_percent}'
+    if clustering_type == 'aggl':
+        plot_name += f"_nc{n_cluster}"
     plt.savefig(
-        f"./figs/{plot_name}.png")
+        f"./figs/taxonomy_pca/{plot_name}.png")
 
-    for ncncnc in range(8):
-        cluster_plot(list(named_pca_taxonomy.values()), ncncnc + 2,
-                     plot_name)
+    # for ncncnc in range(8):
+    #     cluster_plot(list(named_pca_taxonomy.values()), ncncnc + 2,
+    #                  plot_name)
 
 
 def cluster_plot(points, n_cluster, plot_name, x_label='x', y_label='y'):

@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 figs_path = os.path.join(os.getcwd(), 'figs/')
 taxonomy_data_path = os.path.join(os.getcwd(), 'taxonomies')
-equality_data_path = os.path.join(os.getcwd(), 'equality')
+stats_data_path = os.path.join(os.getcwd(), 'network_stats')
 dataset_path = os.path.join(os.getcwd(), 'datasets')
 
 
@@ -13,8 +13,8 @@ def init():
         os.mkdir(figs_path)
     if not os.path.exists(taxonomy_data_path):
         os.mkdir(taxonomy_data_path)
-    if not os.path.exists(equality_data_path):
-        os.mkdir(equality_data_path)
+    if not os.path.exists(stats_data_path):
+        os.mkdir(stats_data_path)
     plt.rcParams.update(
         {'axes.labelsize': 'large', 'axes.titlesize': 'xx-large'})
 

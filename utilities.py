@@ -13,6 +13,8 @@ def init():
         os.mkdir(figs_path)
     if not os.path.exists(taxonomy_data_path):
         os.mkdir(taxonomy_data_path)
+    if not os.path.exists(equality_data_path):
+        os.mkdir(equality_data_path)
     plt.rcParams.update(
         {'axes.labelsize': 'large', 'axes.titlesize': 'xx-large'})
 

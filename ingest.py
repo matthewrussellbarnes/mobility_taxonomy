@@ -56,9 +56,11 @@ def build_taxonomy(data_f_name, di_percent, first_row=0, max_rows=0):
                     degree_dict = dict(G.degree)
 
                     if not stats_file_exists:
-                        stats_df.loc[len(stats_df.index)] = [
-                            creation_time, G.number_of_nodes(), G.number_of_edges(),
-                            compute_equality.gini_coeff(degree_dict)]
+                        for ei in list(ct_edges.keys()):
+                            if ei % math.ceil(t / 100) == 0:
+                                stats_df.loc[len(stats_df.index)] = [
+                                    creation_time, G.number_of_nodes(), G.number_of_edges(),
+                                    compute_equality.gini_coeff(degree_dict)]
 
                     if dt in list(ct_edges.keys()):
                         t_degree = degree_dict

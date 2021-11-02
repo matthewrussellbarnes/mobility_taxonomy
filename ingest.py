@@ -27,9 +27,9 @@ def build_taxonomy(data_f_name, di_percent, first_row=0, max_rows=0):
                 pass
 
     with open(data_path, encoding='utf-8-sig') as csvfile:
-        t = max_i - 1
-        dt = t - int(math.ceil(max_i * (di_percent / 100)))
-        print(t, dt)
+        t2 = max_i - 1
+        t1 = t2 - int(math.ceil(max_i * (di_percent / 100)))
+        print(t2, t1)
 
         stats_df = pd.DataFrame(
             columns=['creation_time', 'nodes', 'edges', 'gini_coeff'])
@@ -57,50 +57,50 @@ def build_taxonomy(data_f_name, di_percent, first_row=0, max_rows=0):
 
                     if not stats_file_exists:
                         for ei in list(ct_edges.keys()):
-                            if ei % math.ceil(t / 100) == 0:
+                            if ei % math.ceil(t2 / 100) == 0:
                                 stats_df.loc[len(stats_df.index)] = [
                                     creation_time, G.number_of_nodes(), G.number_of_edges(),
-                                    compute_equality.gini_coeff(degree_dict)]
+                                    compute_equality.gini_coefficient(degree_dict)]
 
-                    if dt in list(ct_edges.keys()):
-                        t_degree = degree_dict
-                        t_nei_degree = dict(nx.average_neighbor_degree(G))
-                        G_t = G.copy()
+                    if t1 in list(ct_edges.keys()):
+                        t1_degree = degree_dict
+                        t1_nei_degree = dict(nx.average_neighbor_degree(G))
+                        G_t1 = G.copy()
 
-                    elif t in list(ct_edges.keys()):
+                    elif t2 in list(ct_edges.keys()) or i >= t2:
                         taxonomy_df = pd.DataFrame(
                             columns=['node', 'individual', 'delta_individual',
                                      'neighbourhood', 'delta_neighbourhood'])
 
-                        dt_degree = degree_dict
+                        t2_degree = degree_dict
 
-                        for node, dt_degree_node in dt_degree.items():
-                            if G_t.__contains__(node):
-                                t_degree_node = t_degree[node]
-                                t_nei_degree_node = t_nei_degree[node]
+                        for node, t2_degree_node in t2_degree.items():
+                            if G_t1.__contains__(node):
+                                t1_degree_node = t1_degree[node]
+                                t1_nei_degree_node = t1_nei_degree[node]
 
-                                dt_nei_degree_node = 0
-                                cons_nei = G_t[node]
+                                t2_nei_degree_node = 0
+                                cons_nei = G_t1[node]
                                 for nei_node in cons_nei:
-                                    dt_nei_degree_node += G.degree[nei_node]
+                                    t2_nei_degree_node += G.degree[nei_node]
 
-                                dt_nei_degree_node /= len(cons_nei)
+                                t2_nei_degree_node /= len(cons_nei)
 
                                 taxonomy_df.loc[len(taxonomy_df.index)] = [
-                                    node, t_degree_node, dt_degree_node - t_degree_node,
-                                    t_nei_degree_node, dt_nei_degree_node -
-                                    t_nei_degree_node]
+                                    node, t1_degree_node, t2_degree_node - t1_degree_node,
+                                    t1_nei_degree_node, t2_nei_degree_node -
+                                    t1_nei_degree_node]
 
                     ct_edges = {}
 
     create_taxonomy_data_file(
-        f"{data_f_name}_dtp{di_percent}_ti{t}", taxonomy_df)
+        f"{data_f_name}_dtp{di_percent}_ti{t2}", taxonomy_df)
 
     if not stats_file_exists:
         path = f"{utilities.stats_data_path}/{data_f_name}.txt"
         stats_df.to_csv(path, index=False)
 
-    return taxonomy_df, t
+    return taxonomy_df, t2
 
 
 def create_taxonomy_data_file(f_name, taxonomy_df):

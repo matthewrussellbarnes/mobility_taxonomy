@@ -22,7 +22,7 @@ def build_taxonomy(data_f_name, di_percent, first_row=0, max_rows=0):
     with open(data_path, encoding='utf-8-sig') as csvfile:
         for max_i, _ in enumerate(csvfile):
             pass
-        if max_rows > max_i:
+        if max_rows < max_i:
             max_i = max_rows
 
     with open(data_path, encoding='utf-8-sig') as csvfile:

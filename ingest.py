@@ -20,11 +20,10 @@ def build_taxonomy(data_f_name, di_percent, first_row=0, max_rows=0):
     current_ct = 0
     ct_edges = {}
     with open(data_path, encoding='utf-8-sig') as csvfile:
-        if max_rows > 0:
+        for max_i, _ in enumerate(csvfile):
+            pass
+        if max_rows > max_i:
             max_i = max_rows
-        else:
-            for max_i, _ in enumerate(csvfile):
-                pass
 
     with open(data_path, encoding='utf-8-sig') as csvfile:
         t2 = max_i - 1

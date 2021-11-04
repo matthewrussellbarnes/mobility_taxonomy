@@ -47,7 +47,7 @@ def build_taxonomy(data_f_name, di_percent, first_row=0, max_rows=0):
 
                 if current_ct == 0:
                     current_ct = creation_time
-                elif current_ct != creation_time or i >= max_i:
+                elif current_ct != creation_time or i >= t2:
                     current_ct = creation_time
                     for edge in list(ct_edges.values()):
                         G.add_edge(edge[0], edge[1])

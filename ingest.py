@@ -20,10 +20,12 @@ def build_taxonomy(data_f_name, di_percent, first_row=0, max_rows=0):
     current_ct = 0
     ct_edges = {}
     with open(data_path, encoding='utf-8-sig') as csvfile:
-        for max_i, _ in enumerate(csvfile):
+        for max_i_file, _ in enumerate(csvfile):
             pass
-        if max_rows < max_i:
+        if max_rows < max_i_file:
             max_i = max_rows
+        else:
+            max_i = max_i_file
 
     with open(data_path, encoding='utf-8-sig') as csvfile:
         t2 = max_i - 1
@@ -50,7 +52,12 @@ def build_taxonomy(data_f_name, di_percent, first_row=0, max_rows=0):
                 elif current_ct != creation_time or i >= t2:
                     current_ct = creation_time
                     for edge in list(ct_edges.values()):
-                        G.add_edge(edge[0], edge[1])
+                        if G.has_edge(edge[0], edge[1]):
+                            if max_i < max_i_file:
+                                t1 += 1
+                                t2 += 1
+                        else:
+                            G.add_edge(edge[0], edge[1])
 
                     degree_dict = dict(G.degree)
 

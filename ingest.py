@@ -52,7 +52,7 @@ def build_taxonomy(data_f_name, di_percent, first_row=0, max_rows=0):
                 elif current_ct != creation_time or i >= t2:
                     current_ct = creation_time
                     for edge in list(ct_edges.values()):
-                        if G.has_edge(edge[0], edge[1]):
+                        if G.has_edge(edge[0], edge[1]) or edge[0] == edge[1]:
                             if max_i < max_i_file:
                                 t1 += 1
                                 t2 += 1

@@ -56,6 +56,7 @@ def build_taxonomy(data_f_name, di_percent, first_row=0, max_rows=0):
                             if max_i < max_i_file:
                                 t1 += 1
                                 t2 += 1
+                                max_i += 1
                         else:
                             G.add_edge(edge[0], edge[1])
 

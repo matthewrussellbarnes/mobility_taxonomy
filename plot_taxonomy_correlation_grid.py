@@ -3,8 +3,7 @@ import os
 import pandas as pd
 import math
 
-import ingest_data
-import build_taxonomy
+import ingest
 import taxonomy_plotting
 import utilities
 
@@ -31,9 +30,8 @@ for dt_percent in dt_percent_list:
                 taxonomy_df = pd.read_csv(taxonomy_data_f_path)
 
             else:
-                network_data = ingest_data.ingest_data(data_f_name)
-                taxonomy_df, t = build_taxonomy.build_taxonomy(
-                    network_data, max(network_data.index), dt_percent, data_f_name)
+                network_data = ingest.build_taxonomy(
+                    data_f_name, dt_percent)
 
             dt = int(math.ceil(int(t) * (dt_percent / 100)))
 
@@ -45,7 +43,4 @@ for dt_percent in dt_percent_list:
             }
 
     taxonomy_plotting.plot_grid_taxonomy_correlations(
-        plot_data, dt_percent)
-
-    taxonomy_plotting.plot_taxonomy_pca(
         plot_data, dt_percent)

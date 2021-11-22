@@ -43,6 +43,9 @@ def create_artificial_network(probs_list=['random'], initial_n=10, iterations=20
                         gamma_a, gamma_scale, n)
                     probs_dist_dict[p] = static_gamma_with_individual_changes(
                         gamma_a, gamma_scale, n, n_node_gammas_to_change, gamma_dist)
+                elif p == 'equality':
+                    probs_dist_dict[p] = equality_probs(
+                        G.degree, n)
                 else:
                     sys.exit('Probs string not recognized')
 
@@ -166,6 +169,14 @@ def static_gamma_with_individual_changes(a, s, n, t, dist):
     return dist
 
 
+def equality_probs(degree, n):
+    dp = normalise(degree_probs(degree, n, 1))
+    ep = {}
+    for i, p in dp.items():
+        ep[i] = 1 - p
+    return ep
+
+
 def normalise(p):
     p_norm = {}
     if isinstance(p, list):
@@ -181,9 +192,10 @@ def normalise(p):
 
 
 # create_artificial_network(probs_list=['random'], iterations=5000)
-create_artificial_network(
-    probs_list=['preferential_attachment'], iterations=5000)
-create_artificial_network(probs_list=['fitness'], iterations=5000)
-create_artificial_network(probs_list=['gamma_n_change'], iterations=5000)
-create_artificial_network(
-    probs_list=['gamma_n_change', 'preferential_attachment'], iterations=5000)
+# create_artificial_network(
+#     probs_list=['preferential_attachment'], iterations=5000)
+# create_artificial_network(probs_list=['fitness'], iterations=5000)
+# create_artificial_network(probs_list=['gamma_n_change'], iterations=5000)
+# create_artificial_network(
+#     probs_list=['gamma_n_change', 'preferential_attachment'], iterations=5000)
+# create_artificial_network(probs_list=['equality'], iterations=5000)

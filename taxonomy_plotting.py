@@ -6,6 +6,7 @@ from sklearn.cluster import AgglomerativeClustering
 
 import scipy.stats as stats
 import numpy as np
+import datetime
 
 
 def default_plot_params(ax):
@@ -16,13 +17,18 @@ def default_plot_params(ax):
     ax.legend(bbox_to_anchor=(0.5, -0.2), loc='upper center', ncol=3)
 
 
-def build_taxonomy_data_dict(plot_data_dict):
+def build_taxonomy_data_dict(plot_data_dict, add_net_stats=True):
     taxonomy_data_dict = {'mobility': {}, 'assortativity': {}, 'philanthropy': {},
                           'community': {}, 'delta_assortativity': {}, 'neighbourhood_mobility': {}}
+    if add_net_stats:
+        taxonomy_data_dict['equality'] = {}
+        # , 'nodes': {}, 'edges': {}}
 
     for data_f_name, plot_data in plot_data_dict.items():
 
         taxonomy_data = plot_data['taxonomy_data']
+        if add_net_stats:
+            stats_data = plot_data['stats_data']
         t = plot_data['t']
         dt = plot_data['dt']
         data_type = plot_data['data_type']
@@ -33,7 +39,6 @@ def build_taxonomy_data_dict(plot_data_dict):
         delta_individual = taxonomy_data['delta_individual']
         neighbourhood = taxonomy_data['neighbourhood']
         delta_neighbourhood = taxonomy_data['delta_neighbourhood']
-        delta_consistent_neighbourhood = taxonomy_data['delta_consistent_neighbourhood']
 
         taxonomy_data_dict['mobility'][data_label], _ = stats.pearsonr(
             individual, delta_individual)
@@ -47,6 +52,12 @@ def build_taxonomy_data_dict(plot_data_dict):
             delta_individual, delta_neighbourhood)
         taxonomy_data_dict['neighbourhood_mobility'][data_label], _ = stats.pearsonr(
             neighbourhood, delta_neighbourhood)
+
+        if add_net_stats:
+            taxonomy_data_dict['equality'][data_label] = (list(
+                stats_data['gini_coeff'])[-1] + 1) / 2
+        # taxonomy_data_dict['nodes'][data_label] = list(stats_data['nodes'])[-1]
+        # taxonomy_data_dict['edges'][data_label] = list(stats_data['edges'])[-1]
 
     return taxonomy_data_dict
 
@@ -362,7 +373,7 @@ def plot_taxonomy_pairs_for_multiple_networks(plot_data_dict, dt_percent):
 
 
 def plot_grid_taxonomy_correlations(plot_data_dict, dt_percent):
-    taxonomy_data_dict = build_taxonomy_data_dict(plot_data_dict)
+    taxonomy_data_dict = build_taxonomy_data_dict(plot_data_dict, False)
     plot_labels = list(taxonomy_data_dict.keys())
 
     grid_correlations, grid_r_square = taxonomy_correlation_R2(
@@ -497,3 +508,56 @@ def cluster_plot(points, n_cluster, plot_name, x_label='x', y_label='y'):
     plt.tight_layout()
     plt.savefig(
         f"./figs/clusters/cluster_{plot_name}_nc{n_cluster}.png")
+
+
+def plot_equality(plot_data_dict, y_type='norm_it'):
+    data_type_list = list(dict.fromkeys([pdd['data_type']
+                                         for pdd in list(plot_data_dict.values())]))
+    plot_colors = cm.ScalarMappable(colors.Normalize(
+        0, len(data_type_list)), 'tab20')
+    _, ax = plt.subplots(1, 1, figsize=(15, 10))
+    for data_f_name, plot_data in plot_data_dict.items():
+        stats_data = plot_data['stats_data']
+        data_type = plot_data['data_type']
+
+        time_list = list(stats_data['creation_time'])
+        if y_type == 'norm time':
+            max_time = max(time_list)
+            min_time = min(time_list)
+            norm_time_list = []
+            for t in time_list:
+                if '-' in str(t):
+                    date_format = "%Y-%m-%d"
+
+                    unix_t = datetime.datetime.timestamp(
+                        datetime.datetime.strptime(t, date_format))
+                    unix_max_time = datetime.datetime.timestamp(
+                        datetime.datetime.strptime(max_time, date_format))
+                    unix_min_time = datetime.datetime.timestamp(
+                        datetime.datetime.strptime(min_time, date_format))
+
+                    norm_time_list.append(
+                        (unix_t - unix_min_time) / (unix_max_time - unix_min_time))
+                else:
+                    norm_time_list.append(
+                        (t - min_time) / (max_time - min_time))
+            ax.set_xlabel('Normalised Time', fontsize=15)
+        else:
+            max_it = len(time_list)
+            norm_time_list = [i / max_it for i, _ in enumerate(time_list)]
+            ax.set_xlabel('Normalised Iteration', fontsize=15)
+
+        equality_list = list(stats_data['gini_coeff'])
+
+        ax.plot(norm_time_list,
+                equality_list, label=f"{data_f_name}#{data_type}", color=plot_colors.to_rgba(
+                    data_type_list.index(data_type)))
+        ax.set_ylabel('Equality', fontsize=15)
+        ax.set_title('Equality over time')
+        ax.set_ylim([-0.1, 1.1])
+
+        default_plot_params(ax)
+
+        plt.tight_layout()
+        plt.savefig(
+            f"./figs/equality_comparison_data_type_{y_type}.png")

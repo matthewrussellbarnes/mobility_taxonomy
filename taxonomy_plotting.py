@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from matplotlib import cm, colors
+from matplotlib import cm, colors, lines, patches
 
 from sklearn.metrics import r2_score
 from sklearn.cluster import AgglomerativeClustering
@@ -7,6 +7,8 @@ from sklearn.cluster import AgglomerativeClustering
 import scipy.stats as stats
 import numpy as np
 import datetime
+
+import utilities
 
 
 def default_plot_params(ax):
@@ -346,7 +348,7 @@ def plot_taxonomy_pairs_for_multiple_networks(plot_data_dict, dt_percent):
     data_type_list = list(dict.fromkeys([pdd['data_type']
                                          for pdd in list(plot_data_dict.values())]))
     plot_colors = cm.ScalarMappable(colors.Normalize(
-        0, len(data_type_list)), 'tab20')
+        0, len(data_type_list)), 'tab10')
 
     used_taxonomies = []
     for x_label, x_data in taxonomy_data_dict.items():
@@ -374,7 +376,8 @@ def plot_taxonomy_pairs_for_multiple_networks(plot_data_dict, dt_percent):
 
 def plot_grid_taxonomy_correlations(plot_data_dict, dt_percent):
     taxonomy_data_dict = build_taxonomy_data_dict(plot_data_dict, False)
-    plot_labels = list(taxonomy_data_dict.keys())
+    plot_labels = [label.replace('_', ' ').title().replace('Delta', 'Change in')
+                   for label, _ in taxonomy_data_dict.items()]
 
     grid_correlations, grid_r_square = taxonomy_correlation_R2(
         taxonomy_data_dict)
@@ -410,14 +413,14 @@ def plot_grid_taxonomy_correlations(plot_data_dict, dt_percent):
             f"./figs/taxonomy_grid/grid_{plot_name}_dt{dt_percent}.png")
 
 
-def plot_taxonomy_pca(plot_data_dict, dt_percent, pca_type='corr', clustering_type='aggl'):
+def plot_taxonomy_pca(plot_data_dict, dt_percent, pca_type='corr', clustering_type='aggl', n_cluster=6, clustering_type2='data_type'):
     taxonomy_data_dict = build_taxonomy_data_dict(plot_data_dict)
 
-    if clustering_type == 'data_type':
+    if clustering_type == 'data_type' or clustering_type2 == 'data_type':
         data_type_list = list(dict.fromkeys([pdd['data_type']
                                              for pdd in list(plot_data_dict.values())]))
         plot_colors = cm.ScalarMappable(colors.Normalize(
-            0, len(data_type_list)), 'tab20')
+            0, len(data_type_list)), 'tab10')
 
     if pca_type == 'corr':
         corr_mat, _ = taxonomy_correlation_R2(taxonomy_data_dict)
@@ -436,12 +439,15 @@ def plot_taxonomy_pca(plot_data_dict, dt_percent, pca_type='corr', clustering_ty
         data_f_name_list = list(taxonomy_data_per_dataset.keys())
         plot_colors = cm.ScalarMappable(colors.Normalize(
             0, len(data_f_name_list)), 'hsv')
+    elif clustering_type2:
+        if clustering_type2 == 'aggl' or clustering_type == 'aggl':
+            cluster_mat = clustering(
+                np.array(list(taxonomy_data_per_dataset.values())), n_cluster)
     elif clustering_type == 'aggl':
-        n_cluster = 6
         cluster_mat = clustering(
             np.array(list(taxonomy_data_per_dataset.values())), n_cluster)
         plot_colors = cm.ScalarMappable(colors.Normalize(
-            0, n_cluster), 'tab20')
+            0, n_cluster), 'tab10')
 
     pca_taxonomy = PCA(list(taxonomy_data_per_dataset.values()), 2, corr_mat)
 
@@ -451,19 +457,47 @@ def plot_taxonomy_pca(plot_data_dict, dt_percent, pca_type='corr', clustering_ty
                            [i]] = list(pca_taxonomy[i])
 
     _, ax = plt.subplots(1, 1, figsize=(15, 10))
-    for d_label, coor in named_pca_taxonomy.items():
-        if clustering_type == 'data_type':
-            ax.scatter(coor[0], coor[1], label=d_label, color=plot_colors.to_rgba(
-                data_type_list.index(d_label[d_label.index('#') + 1:])))
-        elif clustering_type == 'f_name':
-            ax.scatter(coor[0], coor[1], label=d_label, color=plot_colors.to_rgba(
-                data_f_name_list.index(d_label)))
 
-    if clustering_type == 'aggl':
-        for nc in range(n_cluster):
-            points = np.array(list(named_pca_taxonomy.values()))
-            ax.scatter(points[cluster_mat == nc, 0], points[cluster_mat ==
-                                                            nc, 1], s=100, label=f"cluster{nc}", color=plot_colors.to_rgba(nc))
+    if clustering_type2:
+        legend_elements = []
+        legend_labels = []
+        for d_label, coor in named_pca_taxonomy.items():
+            for nc in range(n_cluster):
+                points = np.array(list(named_pca_taxonomy.values()))
+                for clus_coor in points[cluster_mat == nc]:
+                    if clus_coor[0] == coor[0] and clus_coor[1] == coor[1]:
+                        ll_clus = f"Cluster {nc}"
+                        clus_marker = utilities.plot_markers[nc]
+                        if ll_clus not in legend_labels:
+                            legend_labels.append(ll_clus)
+                            legend_elements.append(lines.Line2D([0], [0], marker=clus_marker, color='w', label='Cluster',
+                                                                markerfacecolor='#000000', markersize=15))
+
+                        ll_col = d_label[d_label.index('#') + 1:]
+                        type_colour = plot_colors.to_rgba(
+                            data_type_list.index(ll_col))
+                        if ll_col not in legend_labels:
+                            legend_labels.append(ll_col)
+                            legend_elements.insert(0, patches.Patch(facecolor=type_colour, edgecolor='w',
+                                                                    label=ll_col))
+
+                        utilities.mscatter([coor[0]], [coor[1]], ax=ax, s=100, m=[
+                                           clus_marker], color=type_colour)
+
+    else:
+        for d_label, coor in named_pca_taxonomy.items():
+            if clustering_type == 'data_type':
+                ax.scatter(coor[0], coor[1], label=d_label, color=plot_colors.to_rgba(
+                    data_type_list.index(d_label[d_label.index('#') + 1:])))
+            elif clustering_type == 'f_name':
+                ax.scatter(coor[0], coor[1], label=d_label, color=plot_colors.to_rgba(
+                    data_f_name_list.index(d_label)))
+
+        if clustering_type == 'aggl':
+            for nc in range(n_cluster):
+                points = np.array(list(named_pca_taxonomy.values()))
+                ax.scatter(points[cluster_mat == nc, 0], points[cluster_mat ==
+                                                                nc, 1], s=100, label=f"cluster{nc}", color=plot_colors.to_rgba(nc))
 
     ax.set_xlabel('x', fontsize=15)
     ax.set_ylabel('y', fontsize=15)
@@ -473,10 +507,16 @@ def plot_taxonomy_pca(plot_data_dict, dt_percent, pca_type='corr', clustering_ty
 
     default_plot_params(ax)
 
+    if clustering_type2:
+        ax.legend(handles=legend_elements, bbox_to_anchor=(
+            0.5, -0.2), loc='upper center', ncol=2)
+
     plt.tight_layout()
     plot_name = f'PCA{pca_type}_ct{clustering_type}_dtp{dt_percent}'
-    if clustering_type == 'aggl':
+    if clustering_type == 'aggl' or clustering_type2 == 'aggl':
         plot_name += f"_nc{n_cluster}"
+    if clustering_type2:
+        plot_name += f"_ct2{clustering_type}"
     plt.savefig(
         f"./figs/taxonomy_pca/{plot_name}.png")
 
@@ -514,7 +554,7 @@ def plot_equality(plot_data_dict, y_type='norm_it'):
     data_type_list = list(dict.fromkeys([pdd['data_type']
                                          for pdd in list(plot_data_dict.values())]))
     plot_colors = cm.ScalarMappable(colors.Normalize(
-        0, len(data_type_list)), 'tab20')
+        0, len(data_type_list)), 'tab10')
     _, ax = plt.subplots(1, 1, figsize=(15, 10))
     for data_f_name, plot_data in plot_data_dict.items():
         stats_data = plot_data['stats_data']

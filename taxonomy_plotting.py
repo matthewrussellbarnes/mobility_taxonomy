@@ -11,12 +11,30 @@ import datetime
 import utilities
 
 
-def default_plot_params(ax):
+def default_plot_params(ax, legend_elements=None):
     ax.minorticks_on()
     ax.grid(which="major", alpha=1)
     ax.grid(which="minor", alpha=0.2)
     ax.tick_params(axis='both', labelsize=15)
-    ax.legend(bbox_to_anchor=(0.5, -0.2), loc='upper center', ncol=3)
+    if legend_elements:
+        ax.legend(handles=legend_elements, bbox_to_anchor=(
+            0.5, -0.2), loc='upper center', ncol=2)
+    else:
+        ax.legend(bbox_to_anchor=(0.5, -0.2), loc='upper center', ncol=3)
+
+
+def custom_legend_elements(label, legend_labels, legend_elements, colour=None, marker=None):
+    if label not in legend_labels:
+        legend_labels.append(label)
+        if colour:
+            legend_elements.insert(0, patches.Patch(facecolor=colour, edgecolor='w',
+                                                    label=label))
+        elif marker:
+            legend_elements.append(lines.Line2D([0], [0], marker=marker, color='w', label=label[:-2],
+                                                markerfacecolor='#000000', markersize=15))
+    return legend_labels, legend_elements
+
+# -----------------------
 
 
 def build_taxonomy_data_dict(plot_data_dict, add_net_stats=True):
@@ -114,6 +132,8 @@ def clustering(X, n_clusters):
     return y_hc
 
 
+# -------------------------------
+
 def plot_mobility(ax, taxonomy_data, color='black', curve_label=''):
     individual = taxonomy_data['individual']
     delta_individual = taxonomy_data['delta_individual']
@@ -190,6 +210,8 @@ def plot_individuality_vs_community(ax, taxonomy_data, color='black', curve_labe
     ax.set_title('Individuality/Community')
 
     default_plot_params(ax)
+
+# -----------------------------
 
 
 def plot_taxonomy_for_single_network(ax, taxonomy_data, plot_label=''):
@@ -343,13 +365,15 @@ def plot_taxonomy_for_each_network(plot_data_dict, dt_percent):
 
 
 def plot_taxonomy_pairs_for_multiple_networks(plot_data_dict, dt_percent):
-    taxonomy_data_dict = build_taxonomy_data_dict(plot_data_dict)
+    taxonomy_data_dict = build_taxonomy_data_dict(plot_data_dict, False)
 
     data_type_list = list(dict.fromkeys([pdd['data_type']
                                          for pdd in list(plot_data_dict.values())]))
     plot_colors = cm.ScalarMappable(colors.Normalize(
         0, len(data_type_list)), 'tab10')
 
+    legend_labels = []
+    legend_elements = []
     used_taxonomies = []
     for x_label, x_data in taxonomy_data_dict.items():
         used_taxonomies.append(x_label)
@@ -359,15 +383,19 @@ def plot_taxonomy_pairs_for_multiple_networks(plot_data_dict, dt_percent):
             _, ax = plt.subplots(1, 1, figsize=(15, 10))
             for d_label, x_corr in x_data.items():
                 y_corr = y_data[d_label]
-                ax.scatter(x_corr, y_corr, label=d_label, color=plot_colors.to_rgba(
-                    data_type_list.index(d_label[d_label.index('#') + 1:])))
+
+                type_colour = plot_colors.to_rgba(
+                    data_type_list.index(d_label[d_label.index('#') + 1:]))
+                legend_labels, legend_elements = custom_legend_elements(
+                    d_label[d_label.index('#') + 1:], legend_labels, legend_elements, colour=type_colour)
+                ax.scatter(x_corr, y_corr, color=type_colour)
             ax.set_xlabel(x_label, fontsize=15)
             ax.set_ylabel(y_label, fontsize=15)
             ax.set_title(f"{x_label} vs {y_label} Correlation Comparison")
             ax.set_xlim([-1.1, 1.1])
             ax.set_ylim([-1.1, 1.1])
 
-            default_plot_params(ax)
+            default_plot_params(ax, legend_elements)
 
             plt.tight_layout()
             plt.savefig(
@@ -412,8 +440,10 @@ def plot_grid_taxonomy_correlations(plot_data_dict, dt_percent):
         plt.savefig(
             f"./figs/taxonomy_grid/grid_{plot_name}_dt{dt_percent}.png")
 
+# -------------------
 
-def plot_taxonomy_pca(plot_data_dict, dt_percent, pca_type='corr', clustering_type='aggl', n_cluster=6, clustering_type2='data_type'):
+
+def plot_taxonomy_pca(plot_data_dict, dt_percent, pca_type='corr', clustering_type=None, n_cluster=6, clustering_type2=None):
     taxonomy_data_dict = build_taxonomy_data_dict(plot_data_dict)
 
     if clustering_type == 'data_type' or clustering_type2 == 'data_type':
@@ -458,8 +488,8 @@ def plot_taxonomy_pca(plot_data_dict, dt_percent, pca_type='corr', clustering_ty
 
     _, ax = plt.subplots(1, 1, figsize=(15, 10))
 
+    legend_elements = []
     if clustering_type2:
-        legend_elements = []
         legend_labels = []
         for d_label, coor in named_pca_taxonomy.items():
             for nc in range(n_cluster):
@@ -468,18 +498,14 @@ def plot_taxonomy_pca(plot_data_dict, dt_percent, pca_type='corr', clustering_ty
                     if clus_coor[0] == coor[0] and clus_coor[1] == coor[1]:
                         ll_clus = f"Cluster {nc}"
                         clus_marker = utilities.plot_markers[nc]
-                        if ll_clus not in legend_labels:
-                            legend_labels.append(ll_clus)
-                            legend_elements.append(lines.Line2D([0], [0], marker=clus_marker, color='w', label='Cluster',
-                                                                markerfacecolor='#000000', markersize=15))
+                        legend_labels, legend_elements = custom_legend_elements(
+                            ll_clus, legend_labels, legend_elements, marker=clus_marker)
 
                         ll_col = d_label[d_label.index('#') + 1:]
                         type_colour = plot_colors.to_rgba(
                             data_type_list.index(ll_col))
-                        if ll_col not in legend_labels:
-                            legend_labels.append(ll_col)
-                            legend_elements.insert(0, patches.Patch(facecolor=type_colour, edgecolor='w',
-                                                                    label=ll_col))
+                        legend_labels, legend_elements = custom_legend_elements(
+                            ll_col, legend_labels, legend_elements, colour=type_colour)
 
                         utilities.mscatter([coor[0]], [coor[1]], ax=ax, s=100, m=[
                                            clus_marker], color=type_colour)
@@ -505,18 +531,14 @@ def plot_taxonomy_pca(plot_data_dict, dt_percent, pca_type='corr', clustering_ty
     ax.set_xlim([-1.1, 1.1])
     ax.set_ylim([-1.1, 1.1])
 
-    default_plot_params(ax)
-
-    if clustering_type2:
-        ax.legend(handles=legend_elements, bbox_to_anchor=(
-            0.5, -0.2), loc='upper center', ncol=2)
+    default_plot_params(ax, legend_elements)
 
     plt.tight_layout()
     plot_name = f'PCA{pca_type}_ct{clustering_type}_dtp{dt_percent}'
     if clustering_type == 'aggl' or clustering_type2 == 'aggl':
         plot_name += f"_nc{n_cluster}"
     if clustering_type2:
-        plot_name += f"_ct2{clustering_type}"
+        plot_name += f"_ct2{clustering_type2}"
     plt.savefig(
         f"./figs/taxonomy_pca/{plot_name}.png")
 
@@ -550,18 +572,21 @@ def cluster_plot(points, n_cluster, plot_name, x_label='x', y_label='y'):
         f"./figs/clusters/cluster_{plot_name}_nc{n_cluster}.png")
 
 
-def plot_equality(plot_data_dict, y_type='norm_it'):
+def plot_equality(plot_data_dict, y_type=None):
     data_type_list = list(dict.fromkeys([pdd['data_type']
                                          for pdd in list(plot_data_dict.values())]))
     plot_colors = cm.ScalarMappable(colors.Normalize(
         0, len(data_type_list)), 'tab10')
     _, ax = plt.subplots(1, 1, figsize=(15, 10))
-    for data_f_name, plot_data in plot_data_dict.items():
+
+    legend_labels = []
+    legend_elements = []
+    for _, plot_data in plot_data_dict.items():
         stats_data = plot_data['stats_data']
         data_type = plot_data['data_type']
 
         time_list = list(stats_data['creation_time'])
-        if y_type == 'norm time':
+        if y_type == 'norm_time':
             max_time = max(time_list)
             min_time = min(time_list)
             norm_time_list = []
@@ -589,15 +614,17 @@ def plot_equality(plot_data_dict, y_type='norm_it'):
 
         equality_list = list(stats_data['gini_coeff'])
 
-        ax.plot(norm_time_list,
-                equality_list, label=f"{data_f_name}#{data_type}", color=plot_colors.to_rgba(
-                    data_type_list.index(data_type)))
+        type_colour = plot_colors.to_rgba(
+            data_type_list.index(data_type))
+        legend_labels, legend_elements = custom_legend_elements(data_type, legend_labels,
+                                                                legend_elements, colour=type_colour)
+        ax.plot(norm_time_list, equality_list, color=type_colour)
         ax.set_ylabel('Equality', fontsize=15)
         ax.set_title('Equality over time')
         ax.set_ylim([-0.1, 1.1])
 
-        default_plot_params(ax)
+    default_plot_params(ax, legend_elements)
 
-        plt.tight_layout()
-        plt.savefig(
-            f"./figs/equality_comparison_data_type_{y_type}.png")
+    plt.tight_layout()
+    plt.savefig(
+        f"./figs/equality_comparison_data_type_{y_type}.png")

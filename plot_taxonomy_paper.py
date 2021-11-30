@@ -47,8 +47,18 @@ for dt_percent in dt_percent_list:
                 'data_type': data_type
             }
 
-    taxonomy_plotting.plot_taxonomy_pca(
-        plot_data, dt_percent)
+    pca_clus_type_list = [['aggl'], ['data_type'],
+                          ['f_name'], ['aggl', 'data_type']]
+    for pct in pca_clus_type_list:
+        print(pct)
+        if len(pct) == 2:
+            taxonomy_plotting.plot_taxonomy_pca(
+                plot_data, dt_percent, clustering_type=pct[0], clustering_type2=pct[1])
+        else:
+            taxonomy_plotting.plot_taxonomy_pca(
+                plot_data, dt_percent, clustering_type=pct[0])
 
-    taxonomy_plotting.plot_equality(
-        plot_data)
+    equality_type_list = ['norm_it', 'norm_time']
+    for eqt in equality_type_list:
+        taxonomy_plotting.plot_equality(
+            plot_data, y_type=eqt)

@@ -23,6 +23,8 @@ for dt_percent in dt_percent_list:
 
             taxonomy_data_f_path = utilities.get_file_path(
                 f"{data_f_name}_dtp{dt_percent}", utilities.taxonomy_data_path)
+            stats_data_f_path = utilities.get_file_path(
+                f"{data_f_name}", utilities.stats_data_path)
 
             if taxonomy_data_f_path:
                 t = taxonomy_data_f_path[
@@ -30,15 +32,17 @@ for dt_percent in dt_percent_list:
                     taxonomy_data_f_path.index("_", taxonomy_data_f_path.index("_ti") + 3)]
                 taxonomy_df = pd.read_csv(taxonomy_data_f_path)
 
+                stats_df = pd.read_csv(stats_data_f_path)
+
             else:
-                network_data = ingest_data.ingest_data(data_f_name)
-                taxonomy_df, t = build_taxonomy.build_taxonomy(
-                    network_data, max(network_data.index), dt_percent, data_f_name)
+                network_data = ingest.build_taxonomy(
+                    data_f_name, dt_percent)
 
             dt = int(math.ceil(int(t) * (dt_percent / 100)))
 
             plot_data[data_f_name] = {
                 'taxonomy_data': taxonomy_df,
+                'stats_data': stats_df,
                 't': t,
                 'dt': dt,
                 'data_type': data_type

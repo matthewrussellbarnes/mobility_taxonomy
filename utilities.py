@@ -56,3 +56,40 @@ def mscatter(x, y, ax=None, m=None, **kw):
             paths.append(path)
         sc.set_paths(paths)
     return sc
+
+
+#   ------
+
+structure_type_lookup = {
+    'CollegeMsg': 'Star',
+    'SCOTUS_majority': 'Star',
+    'amazon_ratings': 'Bipartite',
+    'apostles_bible': 'Individual',
+    'appollonius': 'Individual',
+    'cit_us_patents': 'Star',
+    'classical_piano': 'Individual',
+    'email-Eu-core-temporal': 'Star',
+    'eu_procurements': 'Bipartite',
+    'facebook_wall': 'Star',
+    'lotr': 'Individual',
+    'luke_bible': 'Individual',
+    'nokia_investor_correlations_financial_institution': 'Individual',
+    'phd_exchange': 'Star',
+    'programming_language_influence': 'Star',
+    'reuters_terror_news': 'Individual',
+    'route_net': 'Individual',
+    'soc-redditHyperlinks-body': 'Clique',
+    'soc-redditHyperlinks-title': 'Individual',
+    'sp_hospital': 'Spatial',
+    'sp_hypertext_conference': 'Spatial',
+    'sp_infectious': 'Spatial',
+    'sp_office': 'Spatial',
+    'sp_primary_school': 'Spatial',
+    'sx-askubuntu': 'Clique',
+    'sx-mathoverflow': 'Clique',
+    'sx-stackoverflow': 'Clique',
+    'sx-superuser': 'Clique',
+    'ucla_net': 'Individual',
+    'us_air_traffic': 'Individual',
+    'wiki-talk-temporal': 'Individual'
+}

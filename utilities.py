@@ -39,6 +39,19 @@ def get_file_path(f_name, path):
     return None
 
 
+def get_file_path_for_multiple(f_name, path):
+    f_path_list = []
+    rx = re.compile(f"{f_name}.+")
+    for _, dirs, files in os.walk(path):
+        dirs[:] = [d for d in dirs if d != 'archive']
+        for file in files:
+            if re.match(rx, file):
+                f_path = os.path.join(path, file)
+                f_path_list.append(f_path)
+
+    return f_path_list
+
+
 def mscatter(x, y, ax=None, m=None, **kw):
     import matplotlib.markers as mmarkers
     if not ax:

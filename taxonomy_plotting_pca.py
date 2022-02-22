@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from matplotlib import cm, colors
+from adjustText import adjust_text
 
 import numpy as np
 
@@ -11,11 +12,10 @@ import utilities
 def plot_taxonomy_pca(plot_data_dict, dt_percent, pca_type='corr', clus_name_pair=None, n_cluster=6, corr_mat=None):
 
     corr_mat, clus_type_dict, plot_colors, taxonomy_data_per_dataset = init_plot_pca(
-        plot_data_dict, clus_name_pair, pca_type)
+        plot_data_dict, clus_name_pair, pca_type, n_cluster)
 
-    print(clus_type_dict)
     plot_pca(taxonomy_data_per_dataset, corr_mat, clus_type_dict, plot_colors,
-             f'PCA{pca_type}_dtp{dt_percent}', 'taxonomy_pca', n_cluster=n_cluster)
+             f'PCA{pca_type}_dtp{dt_percent}', 'taxonomy_pca')
 
 
 def cluster_plot(points, n_cluster, plot_name, x_label='x', y_label='y'):
@@ -51,7 +51,7 @@ def plot_taxonomy_pca_over_time(taxonomy_time_steps, pca_type='corr', clus_name_
     taxonomy_t0 = taxonomy_time_steps[timesteps[0]]
 
     corr_mat, clus_type_dict, plot_colors, _ = init_plot_pca(
-        taxonomy_t0, clus_name_pair, pca_type)
+        taxonomy_t0, clus_name_pair, pca_type, n_cluster)
 
     taxonomy_data_per_timestep_dataset = {}
     for data_f_name in list(taxonomy_t0.keys()):
@@ -72,10 +72,10 @@ def plot_taxonomy_pca_over_time(taxonomy_time_steps, pca_type='corr', clus_name_
                             aspect_entry]
 
     plot_pca(taxonomy_data_per_timestep_dataset, corr_mat, clus_type_dict, plot_colors,
-             f'PCA{pca_type}', 'multi_taxonomy_pca', ax=ax, n_cluster=n_cluster)
+             f'PCA{pca_type}', 'multi_taxonomy_pca', ax=ax)
 
 
-def init_plot_pca(plot_data_dict, clus_name_pair=None, pca_type='corr'):
+def init_plot_pca(plot_data_dict, clus_name_pair=None, pca_type='corr', n_cluster=6):
     taxonomy_data_dict = taxonomy_analysis.build_taxonomy_data_dict(
         plot_data_dict)
     clus_type_dict = {}
@@ -109,7 +109,7 @@ def init_plot_pca(plot_data_dict, clus_name_pair=None, pca_type='corr'):
         clus_type_dict['f_name'] = f_name_list
 
     if 'aggl' in clus_name_pair:
-        clus_type_dict['aggl'] = None
+        clus_type_dict['aggl'] = list(range(n_cluster))
 
     plot_colors = cm.ScalarMappable(colors.Normalize(
         0, len(clus_type_dict[clus_name_pair[0]])), 'tab10')
@@ -117,7 +117,8 @@ def init_plot_pca(plot_data_dict, clus_name_pair=None, pca_type='corr'):
     return(corr_mat, clus_type_dict, plot_colors, taxonomy_data_per_dataset)
 
 
-def plot_pca(pca_data_dict, corr_mat, clus_type_dict, plot_colors, plot_name, plot_folder, ax=None, n_cluster=6):
+def plot_pca(pca_data_dict, corr_mat, clus_type_dict, plot_colors, plot_name, plot_folder, ax=None):
+    texts = []
     pca_taxonomy = taxonomy_analysis.PCA(
         list(pca_data_dict.values()), 2, corr_mat)
 
@@ -134,13 +135,9 @@ def plot_pca(pca_data_dict, corr_mat, clus_type_dict, plot_colors, plot_name, pl
         lc = {}
         lm = {}
         msd = {}
-        for cni, clus_name in enumerate(clus_type_dict.keys()):
-            for d_label, coor in named_pca_taxonomy.items():
-                if d_label not in msd:
-                    msd[d_label] = {
-                        'coor': coor
-                    }
-
+        for d_label, coor in named_pca_taxonomy.items():
+            point_data_dict = {}
+            for cni, clus_name in enumerate(clus_type_dict.keys()):
                 if 'data_type' == clus_name:
                     ll = d_label[d_label.index('#') + 1:d_label.index('$')]
                     ll_in = clus_type_dict[clus_name].index(ll)
@@ -149,8 +146,8 @@ def plot_pca(pca_data_dict, corr_mat, clus_type_dict, plot_colors, plot_name, pl
                     ll_in = clus_type_dict[clus_name].index(ll)
                 elif 'aggl' == clus_name:
                     cluster_mat = taxonomy_analysis.clustering(
-                        np.array(list(pca_data_dict.values())), n_cluster)
-                    for nc in range(n_cluster):
+                        np.array(list(pca_data_dict.values())), len(clus_type_dict[clus_name]))
+                    for nc in clus_type_dict[clus_name]:
                         points = np.array(
                             list(named_pca_taxonomy.values()))
                         for clus_coor in points[cluster_mat == nc]:
@@ -161,19 +158,29 @@ def plot_pca(pca_data_dict, corr_mat, clus_type_dict, plot_colors, plot_name, pl
 
                 if cni == 0:
                     point_colour = plot_colors.to_rgba(ll_in)
-                    msd[d_label]['c'] = point_colour
+                    point_data_dict['c'] = point_colour
                     lc[ll] = point_colour
                 elif cni == 1:
                     point_marker = utilities.plot_markers[ll_in]
-                    msd[d_label]['m'] = point_marker
+                    point_data_dict['m'] = point_marker
                     lm[ll] = point_marker
 
-        for _, point_data in msd.items():
-            coor = point_data['coor']
-            # utilities.mscatter([coor[0]], [coor[1]], ax=ax, s=100, m=[
-            # point_data['m']], color=point_data['c'])
-            ax.plot(coor[0], coor[1], marker=point_data['m'],
-                    color=point_data['c'])
+            point_label = d_label[3:d_label.index(':')]
+
+            if point_label not in msd:
+                point_data_dict['coorX'] = [coor[0]]
+                point_data_dict['coorY'] = [coor[1]]
+                msd[point_label] = point_data_dict
+            else:
+                msd[point_label]['coorX'].append(coor[0])
+                msd[point_label]['coorY'].append(coor[1])
+
+        for point_label, point_data in msd.items():
+            coorX = point_data['coorX']
+            coorY = point_data['coorY']
+            ax.plot(coorX, coorY, marker=point_data['m'],
+                    color=point_data['c'], markersize=10)
+            texts.append(ax.text(coorX[0], coorY[0], point_label))
 
         for ll_col, clus_col in lc.items():
             legend_labels, legend_elements = taxonomy_plotting.custom_legend_elements(
@@ -184,27 +191,27 @@ def plot_pca(pca_data_dict, corr_mat, clus_type_dict, plot_colors, plot_name, pl
                 ll_mar, legend_labels, legend_elements, marker=clus_mar)
 
     elif len(clus_type_dict) == 1:
-        clustering_type = list(clus_type_dict.keys())[0]
-        if clustering_type == 'aggl':
+        clus_name = list(clus_type_dict.keys())[0]
+        if clus_name == 'aggl':
             cluster_mat = taxonomy_analysis.clustering(
-                np.array(list(pca_data_dict.values())), n_cluster)
-            for nc in range(n_cluster):
+                np.array(list(pca_data_dict.values())), len(clus_type_dict[clus_name]))
+            for nc in clus_type_dict[clus_name]:
                 points = np.array(list(named_pca_taxonomy.values()))
-                # ax.scatter(points[cluster_mat == nc, 0], points[cluster_mat ==
-                # nc, 1], s=100, label=f"cluster{nc}", color=plot_colors.to_rgba(nc))
-                ax.plot(points[cluster_mat == nc, 0], points[cluster_mat ==
-                                                             nc, 1], label=f"cluster{nc}", color=plot_colors.to_rgba(nc))
+                ax.scatter(points[cluster_mat == nc, 0], points[cluster_mat ==
+                                                                nc, 1], s=100, label=f"cluster{nc}", color=plot_colors.to_rgba(nc))
+                # ax.plot(points[cluster_mat == nc, 0], points[cluster_mat ==
+                #                                              nc, 1], label=f"cluster{nc}", color=plot_colors.to_rgba(nc))
 
         else:
             for d_label, coor in named_pca_taxonomy.items():
-                if clustering_type == 'data_type':
+                if clus_name == 'data_type':
                     ax.scatter(coor[0], coor[1], label=d_label, color=plot_colors.to_rgba(
-                        clus_type_dict[clustering_type].index(d_label[d_label.index('#') + 1:d_label.index('$')])))
-                    ax.plot(coor[0], coor[1])
-                elif clustering_type == 'f_name':
+                        clus_type_dict[clus_name].index(d_label[d_label.index('#') + 1:d_label.index('$')])))
+                    # ax.plot(coor[0], coor[1])
+                elif clus_name == 'f_name':
                     ax.scatter(coor[0], coor[1], label=d_label, color=plot_colors.to_rgba(
-                        clus_type_dict[clustering_type].index(d_label)))
-                    ax.plot(coor[0], coor[1])
+                        clus_type_dict[clus_name].index(d_label)))
+                    # ax.plot(coor[0], coor[1])
 
     else:
         print('Too many or few clustering types chosen')
@@ -219,12 +226,15 @@ def plot_pca(pca_data_dict, corr_mat, clus_type_dict, plot_colors, plot_name, pl
     taxonomy_plotting.default_plot_params(ax, legend_elements)
 
     plt.tight_layout()
+    adjust_text(texts, only_move={'points': 'y', 'texts': 'y'}, arrowprops=dict(
+        arrowstyle="->", color='r', lw=1))
 
     plot_name += f'_ct{list(clus_type_dict.keys())[0]}'
 
     if 'aggl' in clus_type_dict:
-        plot_name += f"_nc{n_cluster}"
+        plot_name += f"_nc{len(clus_type_dict['aggl'])}"
     if len(clus_type_dict) == 2:
         plot_name += f"_ct2{list(clus_type_dict.keys())[1]}"
+
     plt.savefig(
-        f"./figs/{plot_folder}/{plot_name}.png")
+        f"./figs/{plot_folder}/1{plot_name}.png")

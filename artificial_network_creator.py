@@ -8,11 +8,11 @@ import scipy.stats as stats
 import utilities
 
 
-def create_artificial_network(probs_list=['random'], initial_n=10, iterations=2000, gamma_a=1.5, gamma_scale=2, degree_base_p=1, edge_increase_per_iteration=3, node_increase_on_iteration=1, node_increase_per_iteration=1, n_node_gammas_to_change=1):
+def create_artificial_network(probs_list=['random'], initial_n=10, iterations=2000, gamma_a=1.5, gamma_scale=2, degree_base_p=1, edge_increase_per_iteration=3, node_increase_on_iteration=1, node_increase_per_iteration=1, n_node_gammas_to_change=1, f_name_modifier=None):
     print(probs_list)
 
     path = os.path.join(utilities.dataset_path,
-                        f"artificial_{'_'.join(probs_list)}_i{iterations}.csv")
+                        f"Artificial/%{f_name_modifier}artificial_{'_'.join(probs_list)}_i{iterations}.csv")
     with open(path, 'w') as f:
         writer = csv.DictWriter(
             f, ['n1', 'n2', 'creation_time'], delimiter=' ')
@@ -191,7 +191,9 @@ def normalise(p):
     return p_norm
 
 
-# create_artificial_network(probs_list=['random'], iterations=5000)
+for i in range(25):
+    create_artificial_network(
+        probs_list=['gamma_n_change', 'preferential_attachment'], iterations=5000, f_name_modifier=i)
 # create_artificial_network(
 #     probs_list=['preferential_attachment'], iterations=5000)
 # create_artificial_network(probs_list=['fitness'], iterations=5000)

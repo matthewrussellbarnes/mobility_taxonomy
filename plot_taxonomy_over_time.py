@@ -3,7 +3,7 @@ import os
 import pandas as pd
 import math
 
-import taxonomy_plotting
+import taxonomy_plotting_pca
 import utilities
 
 utilities.init()
@@ -48,9 +48,11 @@ for dirpath, dirs, files in os.walk(utilities.dataset_path, topdown=True):
 
         plot_data[data_f_name] = taxonomy_time_steps
 
-pca_clus_type_list = [['data_type', 'aggl'], ['aggl'], ['data_type'],
-                      ['f_name'], ['data_type', 'struc_type'], ['struc_type', 'aggl']]
+# pca_clus_type_list = [['data_type', 'aggl'], ['aggl'], ['data_type'],
+        #   ['f_name'],
+pca_clus_type_list = [['data_type', 'struc_type']]
+#   , ['struc_type', 'aggl']]
 for pct in pca_clus_type_list:
     print(pct)
-    taxonomy_plotting.plot_taxonomy_pca_over_time(
+    taxonomy_plotting_pca.plot_taxonomy_pca_over_time(
         taxonomy_time_steps, clus_name_pair=pct)

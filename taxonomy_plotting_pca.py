@@ -8,7 +8,74 @@ import taxonomy_plotting
 import utilities
 
 
-def plot_taxonomy_pca(plot_data_dict, dt_percent, ax=None, pca_type='corr', clus_name_pair=None, n_cluster=6, corr_mat=None):
+def plot_taxonomy_pca(plot_data_dict, dt_percent, pca_type='corr', clus_name_pair=None, n_cluster=6, corr_mat=None):
+
+    corr_mat, clus_type_dict, plot_colors, taxonomy_data_per_dataset = init_plot_pca(
+        plot_data_dict, clus_name_pair, pca_type)
+
+    print(clus_type_dict)
+    plot_pca(taxonomy_data_per_dataset, corr_mat, clus_type_dict, plot_colors,
+             f'PCA{pca_type}_dtp{dt_percent}', 'taxonomy_pca', n_cluster=n_cluster)
+
+
+def cluster_plot(points, n_cluster, plot_name, x_label='x', y_label='y'):
+    points = np.array(points)
+    cluster_mat = taxonomy_analysis.clustering(points, n_cluster)
+
+    plot_colors = cm.ScalarMappable(colors.Normalize(
+        0, n_cluster), 'tab20')
+
+    _, ax = plt.subplots(1, 1, figsize=(15, 10))
+    for nc in range(n_cluster):
+        ax.scatter(points[cluster_mat == nc, 0], points[cluster_mat ==
+                                                        nc, 1], s=100, label=f"cluster{nc}", color=plot_colors.to_rgba(nc))
+
+    ax.set_xlabel(x_label, fontsize=15)
+    ax.set_ylabel(y_label, fontsize=15)
+    ax.set_title('Clustering')
+    ax.set_xlim([-1.1, 1.1])
+    ax.set_ylim([-1.1, 1.1])
+
+    taxonomy_plotting.default_plot_params(ax)
+
+    plt.tight_layout()
+    plt.savefig(
+        f"./figs/clusters/cluster_{plot_name}_nc{n_cluster}.png")
+
+
+def plot_taxonomy_pca_over_time(taxonomy_time_steps, pca_type='corr', clus_name_pair=None, n_cluster=6):
+    _, ax = plt.subplots(1, 1, figsize=(15, 10))
+
+    timesteps = list(taxonomy_time_steps.keys())
+    timesteps.sort()
+    taxonomy_t0 = taxonomy_time_steps[timesteps[0]]
+
+    corr_mat, clus_type_dict, plot_colors, _ = init_plot_pca(
+        taxonomy_t0, clus_name_pair, pca_type)
+
+    taxonomy_data_per_timestep_dataset = {}
+    for data_f_name in list(taxonomy_t0.keys()):
+        taxonomy_timestep_data_dict = {}
+        for timestep in timesteps:
+            taxonomy_timestep_data_dict[timestep] = taxonomy_analysis.build_taxonomy_data_dict(
+                {data_f_name: taxonomy_time_steps[timestep][data_f_name]})
+
+        for timestep_l, timestep_data in taxonomy_timestep_data_dict.items():
+            for _, aspect in timestep_data.items():
+                for dataset, aspect_entry in aspect.items():
+                    td_label = f'{timestep_l}_{dataset}'
+                    if td_label in taxonomy_data_per_timestep_dataset:
+                        taxonomy_data_per_timestep_dataset[td_label].append(
+                            aspect_entry)
+                    else:
+                        taxonomy_data_per_timestep_dataset[td_label] = [
+                            aspect_entry]
+
+    plot_pca(taxonomy_data_per_timestep_dataset, corr_mat, clus_type_dict, plot_colors,
+             f'PCA{pca_type}', 'multi_taxonomy_pca', ax=ax, n_cluster=n_cluster)
+
+
+def init_plot_pca(plot_data_dict, clus_name_pair=None, pca_type='corr'):
     taxonomy_data_dict = taxonomy_analysis.build_taxonomy_data_dict(
         plot_data_dict)
     clus_type_dict = {}
@@ -23,12 +90,11 @@ def plot_taxonomy_pca(plot_data_dict, dt_percent, ax=None, pca_type='corr', clus
                                               for pdd in list(plot_data_dict.values())]))
         clus_type_dict['struc_type'] = struc_type_list
 
-    if not corr_mat:
-        if pca_type == 'corr':
-            corr_mat, _ = taxonomy_analysis.taxonomy_correlation_R2(
-                taxonomy_data_dict)
-        else:
-            corr_mat = None
+    if pca_type == 'corr':
+        corr_mat, _ = taxonomy_analysis.taxonomy_correlation_R2(
+            taxonomy_data_dict)
+    else:
+        corr_mat = None
 
     taxonomy_data_per_dataset = {}
     for aspect in list(taxonomy_data_dict.values()):
@@ -43,36 +109,32 @@ def plot_taxonomy_pca(plot_data_dict, dt_percent, ax=None, pca_type='corr', clus
         clus_type_dict['f_name'] = f_name_list
 
     if 'aggl' in clus_name_pair:
-        cluster_mat = taxonomy_analysis.clustering(
-            np.array(list(taxonomy_data_per_dataset.values())), n_cluster)
-        clus_type_dict['aggl'] = list(range(n_cluster))
-
-    pca_taxonomy = PCA(
-        list(taxonomy_data_per_dataset.values()), 2, corr_mat)
-
-    named_pca_taxonomy = {}
-    for i in range(len(pca_taxonomy)):
-        named_pca_taxonomy[list(taxonomy_data_per_dataset.keys())
-                           [i]] = list(pca_taxonomy[i])
-
-    if ax:
-        plot_folder = 'multi_taxonomy_pca'
-        plot_name = f'PCA{pca_type}_ct{clus_name_pair[0]}'
-    else:
-        plot_folder = 'taxonomy_pca'
-        plot_name = f'PCA{pca_type}_ct{clus_name_pair[0]}_dtp{dt_percent}'
-        _, ax = plt.subplots(1, 1, figsize=(15, 10))
+        clus_type_dict['aggl'] = None
 
     plot_colors = cm.ScalarMappable(colors.Normalize(
         0, len(clus_type_dict[clus_name_pair[0]])), 'tab10')
 
+    return(corr_mat, clus_type_dict, plot_colors, taxonomy_data_per_dataset)
+
+
+def plot_pca(pca_data_dict, corr_mat, clus_type_dict, plot_colors, plot_name, plot_folder, ax=None, n_cluster=6):
+    pca_taxonomy = taxonomy_analysis.PCA(
+        list(pca_data_dict.values()), 2, corr_mat)
+
+    named_pca_taxonomy = {}
+    for i in range(len(pca_taxonomy)):
+        named_pca_taxonomy[list(pca_data_dict.keys())
+                           [i]] = list(pca_taxonomy[i])
+    if not ax:
+        _, ax = plt.subplots(1, 1, figsize=(15, 10))
+
     legend_elements = []
     legend_labels = []
-    if len(clus_name_pair) == 2:
+    if len(clus_type_dict) == 2:
         lc = {}
         lm = {}
         msd = {}
-        for cni, clus_name in enumerate(clus_name_pair):
+        for cni, clus_name in enumerate(clus_type_dict.keys()):
             for d_label, coor in named_pca_taxonomy.items():
                 if d_label not in msd:
                     msd[d_label] = {
@@ -81,11 +143,13 @@ def plot_taxonomy_pca(plot_data_dict, dt_percent, ax=None, pca_type='corr', clus
 
                 if 'data_type' == clus_name:
                     ll = d_label[d_label.index('#') + 1:d_label.index('$')]
-                    ll_in = data_type_list.index(ll)
+                    ll_in = clus_type_dict[clus_name].index(ll)
                 elif 'struc_type' == clus_name:
                     ll = d_label[d_label.index('$') + 1:]
-                    ll_in = struc_type_list.index(ll)
+                    ll_in = clus_type_dict[clus_name].index(ll)
                 elif 'aggl' == clus_name:
+                    cluster_mat = taxonomy_analysis.clustering(
+                        np.array(list(pca_data_dict.values())), n_cluster)
                     for nc in range(n_cluster):
                         points = np.array(
                             list(named_pca_taxonomy.values()))
@@ -119,9 +183,11 @@ def plot_taxonomy_pca(plot_data_dict, dt_percent, ax=None, pca_type='corr', clus
             legend_labels, legend_elements = taxonomy_plotting.custom_legend_elements(
                 ll_mar, legend_labels, legend_elements, marker=clus_mar)
 
-    elif len(clus_name_pair) == 1:
-        clustering_type = clus_name_pair[0]
+    elif len(clus_type_dict) == 1:
+        clustering_type = list(clus_type_dict.keys())[0]
         if clustering_type == 'aggl':
+            cluster_mat = taxonomy_analysis.clustering(
+                np.array(list(pca_data_dict.values())), n_cluster)
             for nc in range(n_cluster):
                 points = np.array(list(named_pca_taxonomy.values()))
                 # ax.scatter(points[cluster_mat == nc, 0], points[cluster_mat ==
@@ -133,11 +199,11 @@ def plot_taxonomy_pca(plot_data_dict, dt_percent, ax=None, pca_type='corr', clus
             for d_label, coor in named_pca_taxonomy.items():
                 if clustering_type == 'data_type':
                     ax.scatter(coor[0], coor[1], label=d_label, color=plot_colors.to_rgba(
-                        data_type_list.index(d_label[d_label.index('#') + 1:d_label.index('$')])))
+                        clus_type_dict[clustering_type].index(d_label[d_label.index('#') + 1:d_label.index('$')])))
                     ax.plot(coor[0], coor[1])
                 elif clustering_type == 'f_name':
                     ax.scatter(coor[0], coor[1], label=d_label, color=plot_colors.to_rgba(
-                        f_name_list.index(d_label)))
+                        clus_type_dict[clustering_type].index(d_label)))
                     ax.plot(coor[0], coor[1])
 
     else:
@@ -154,52 +220,11 @@ def plot_taxonomy_pca(plot_data_dict, dt_percent, ax=None, pca_type='corr', clus
 
     plt.tight_layout()
 
-    if 'aggl' in clus_name_pair:
+    plot_name += f'_ct{list(clus_type_dict.keys())[0]}'
+
+    if 'aggl' in clus_type_dict:
         plot_name += f"_nc{n_cluster}"
-    if len(clus_name_pair) == 2:
-        plot_name += f"_ct2{clus_name_pair[1]}"
+    if len(clus_type_dict) == 2:
+        plot_name += f"_ct2{list(clus_type_dict.keys())[1]}"
     plt.savefig(
         f"./figs/{plot_folder}/{plot_name}.png")
-
-    return(corr_mat)
-
-    # for ncncnc in range(8):
-    #     cluster_plot(list(named_pca_taxonomy.values()), ncncnc + 2,
-    #                  plot_name)
-
-
-def cluster_plot(points, n_cluster, plot_name, x_label='x', y_label='y'):
-    points = np.array(points)
-    cluster_mat = taxonomy_analysis.clustering(points, n_cluster)
-
-    plot_colors = cm.ScalarMappable(colors.Normalize(
-        0, n_cluster), 'tab20')
-
-    _, ax = plt.subplots(1, 1, figsize=(15, 10))
-    for nc in range(n_cluster):
-        ax.scatter(points[cluster_mat == nc, 0], points[cluster_mat ==
-                                                        nc, 1], s=100, label=f"cluster{nc}", color=plot_colors.to_rgba(nc))
-
-    ax.set_xlabel(x_label, fontsize=15)
-    ax.set_ylabel(y_label, fontsize=15)
-    ax.set_title('Clustering')
-    ax.set_xlim([-1.1, 1.1])
-    ax.set_ylim([-1.1, 1.1])
-
-    taxonomy_plotting.default_plot_params(ax)
-
-    plt.tight_layout()
-    plt.savefig(
-        f"./figs/clusters/cluster_{plot_name}_nc{n_cluster}.png")
-
-
-def plot_taxonomy_pca_over_time(taxonomy_time_steps, pca_type='corr', clus_name_pair=None, n_cluster=6):
-    corr_mat = None
-    _, ax = plt.subplots(1, 1, figsize=(15, 10))
-    timesteps = list(taxonomy_time_steps.keys())
-    timesteps.sort()
-    for timestep in timesteps:
-        print(timestep)
-        plot_data_dict = taxonomy_time_steps[timestep]
-        corr_mat = plot_taxonomy_pca(plot_data_dict, timestep, pca_type=pca_type, ax=ax,
-                                     clus_name_pair=clus_name_pair, corr_mat=corr_mat, n_cluster=n_cluster)

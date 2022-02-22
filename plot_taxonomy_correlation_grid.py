@@ -25,8 +25,8 @@ for dt_percent in dt_percent_list:
 
             if taxonomy_data_f_path:
                 t = taxonomy_data_f_path[
-                    taxonomy_data_f_path.index("_ti") + 3:
-                    taxonomy_data_f_path.index("_", taxonomy_data_f_path.index("_ti") + 3)]
+                    taxonomy_data_f_path.index("_e", taxonomy_data_f_path.index("_dtp")) + 2:
+                    taxonomy_data_f_path.index("_", taxonomy_data_f_path.index("_e", taxonomy_data_f_path.index("_dtp")) + 2)]
                 taxonomy_df = pd.read_csv(taxonomy_data_f_path)
 
             else:

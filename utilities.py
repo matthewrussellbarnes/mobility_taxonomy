@@ -2,6 +2,7 @@ import os
 import re
 import matplotlib.pyplot as plt
 from matplotlib import colors
+import string
 
 figs_path = os.path.join(os.getcwd(), 'figs/')
 taxonomy_data_path = os.path.join(os.getcwd(), 'taxonomies')
@@ -14,6 +15,7 @@ cmap10 = colors.ListedColormap(['#ffe119', '#4363d8', '#f58231',
                                 '#dcbeff', '#800000', '#000075', '#a9a9a9', '#9A6324', '#fabed4'])
 
 plot_markers = ["o", "s", "D", "*", 'P', 'X', '1', 'v', 'p', '$£$']
+plot_letters = list(string.ascii_letters)
 
 
 def init():

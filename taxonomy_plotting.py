@@ -297,6 +297,77 @@ def plot_taxonomy_pairs_for_multiple_networks(plot_data_dict, dt_percent):
             plt.savefig(
                 f"./figs/pair_taxonomy_type_comparison/{x_label}_{y_label}_comparison_dtp{dt_percent}.png")
 
+# --------------------------------
+
+
+def plot_taxonomy_aspects_over_time(taxonomy_time_steps, clustering_type='data_type'):
+    timesteps = list(taxonomy_time_steps.keys())
+    timesteps.sort()
+    taxonomy_t0 = taxonomy_time_steps[timesteps[0]]
+    clustering_type_list = list(dict.fromkeys([pdd[clustering_type]
+                                               for pdd in list(taxonomy_t0.values())]))
+    plot_colors = cm.ScalarMappable(colors.Normalize(
+        0, len(clustering_type_list)), 'tab10')
+
+    legend_labels = []
+    legend_elements = []
+
+    plot_data_dict = {}
+    for timestep, taxonomy_data in taxonomy_time_steps.items():
+        ts = int(timestep)
+        taxonomy_data_dict = taxonomy_analysis.build_taxonomy_data_dict(
+            taxonomy_data)
+
+        for taxonomy_aspect, correlation_data in taxonomy_data_dict.items():
+            for data_label, correlation in correlation_data.items():
+                if clustering_type == 'data_type':
+                    ll = data_label[data_label.index(
+                        '#') + 1:data_label.index('$')]
+                elif clustering_type == 'struc_type':
+                    ll = data_label[data_label.index('$') + 1:]
+
+                dl = f"{data_label[:data_label.index(':')]}:{ll}"
+
+                if taxonomy_aspect in plot_data_dict:
+                    if dl in plot_data_dict[taxonomy_aspect]:
+                        plot_data_dict[taxonomy_aspect][dl][ts] = correlation
+                    else:
+                        plot_data_dict[taxonomy_aspect][dl] = {
+                            ts: correlation}
+                else:
+                    plot_data_dict[taxonomy_aspect] = {
+                        dl: {ts: correlation}}
+
+    for t_aspect, named_time_data in plot_data_dict.items():
+        _, ax = plt.subplots(1, 1, figsize=(15, 10))
+        for data_name, plot_data in named_time_data.items():
+            clt = data_name[data_name.index(':') + 1:]
+            type_colour = plot_colors.to_rgba(
+                clustering_type_list.index(clt))
+            legend_labels, legend_elements = custom_legend_elements(clt, legend_labels,
+                                                                    legend_elements, colour=type_colour)
+
+            x = list(plot_data.keys())
+            x.sort()
+
+            y = []
+            for tsx in x:
+                y.append(plot_data[tsx])
+
+            ax.plot(x, y, color=type_colour)
+
+        default_plot_params(ax, legend_elements)
+        ax.set_title(t_aspect)
+        ax.set_xlabel('Timestep')
+        ax.set_ylabel('Correlation')
+        ax.set_ylim([-1.1, 1.1])
+
+        plt.tight_layout()
+        plt.savefig(
+            f"./figs/taxonomy_aspect_over_time/large_{t_aspect}_{clustering_type}.png")
+
+#  --------------------------------
+
 
 def plot_grid_taxonomy_correlations(plot_data_dict, dt_percent):
     taxonomy_data_dict = taxonomy_analysis.build_taxonomy_data_dict(

@@ -44,8 +44,6 @@ def cluster_plot(points, n_cluster, plot_name, x_label='x', y_label='y'):
 
 
 def plot_taxonomy_pca_over_time(taxonomy_time_steps, pca_type='corr', clus_name_pair=None, n_cluster=6):
-    _, ax = plt.subplots(1, 1, figsize=(15, 10))
-
     timesteps = list(taxonomy_time_steps.keys())
     timesteps.sort()
     taxonomy_t0 = taxonomy_time_steps[timesteps[0]]
@@ -72,7 +70,7 @@ def plot_taxonomy_pca_over_time(taxonomy_time_steps, pca_type='corr', clus_name_
                             aspect_entry]
 
     plot_pca(taxonomy_data_per_timestep_dataset, corr_mat, clus_type_dict, plot_colors,
-             f'PCA{pca_type}', 'multi_taxonomy_pca', ax=ax)
+             f'PCA{pca_type}', 'multi_taxonomy_pca')
 
 
 def init_plot_pca(plot_data_dict, clus_name_pair=None, pca_type='corr', n_cluster=6):
@@ -117,18 +115,20 @@ def init_plot_pca(plot_data_dict, clus_name_pair=None, pca_type='corr', n_cluste
     return(corr_mat, clus_type_dict, plot_colors, taxonomy_data_per_dataset)
 
 
-def plot_pca(pca_data_dict, corr_mat, clus_type_dict, plot_colors, plot_name, plot_folder, ax=None):
-    texts = []
+def plot_pca(pca_data_dict, corr_mat, clus_type_dict, plot_colors, plot_name, plot_folder):
+    # texts = []
     pca_taxonomy = taxonomy_analysis.PCA(
         list(pca_data_dict.values()), 2, corr_mat)
 
+    d_label_list = list(pca_data_dict.keys())
+    point_label_list = list(dict.fromkeys(
+        [dl[3:dl.index(':')] for dl in d_label_list]))
+
     named_pca_taxonomy = {}
     for i in range(len(pca_taxonomy)):
-        named_pca_taxonomy[list(pca_data_dict.keys())
-                           [i]] = list(pca_taxonomy[i])
-    if not ax:
-        _, ax = plt.subplots(1, 1, figsize=(15, 10))
+        named_pca_taxonomy[d_label_list[i]] = list(pca_taxonomy[i])
 
+    _, ax = plt.subplots(1, 1, figsize=(15, 10))
     legend_elements = []
     legend_labels = []
     if len(clus_type_dict) == 2:
@@ -136,6 +136,7 @@ def plot_pca(pca_data_dict, corr_mat, clus_type_dict, plot_colors, plot_name, pl
         lm = {}
         msd = {}
         for d_label, coor in named_pca_taxonomy.items():
+            point_label = d_label[3:d_label.index(':')]
             point_data_dict = {}
             for cni, clus_name in enumerate(clus_type_dict.keys()):
                 if 'data_type' == clus_name:
@@ -156,6 +157,9 @@ def plot_pca(pca_data_dict, corr_mat, clus_type_dict, plot_colors, plot_name, pl
                                 ll_in = nc
                                 break
 
+                point_data_dict['l'] = \
+                    utilities.plot_letters[point_label_list.index(point_label)]
+
                 if cni == 0:
                     point_colour = plot_colors.to_rgba(ll_in)
                     point_data_dict['c'] = point_colour
@@ -164,8 +168,6 @@ def plot_pca(pca_data_dict, corr_mat, clus_type_dict, plot_colors, plot_name, pl
                     point_marker = utilities.plot_markers[ll_in]
                     point_data_dict['m'] = point_marker
                     lm[ll] = point_marker
-
-            point_label = d_label[3:d_label.index(':')]
 
             if point_label not in msd:
                 point_data_dict['coorX'] = [coor[0]]
@@ -178,9 +180,12 @@ def plot_pca(pca_data_dict, corr_mat, clus_type_dict, plot_colors, plot_name, pl
         for point_label, point_data in msd.items():
             coorX = point_data['coorX']
             coorY = point_data['coorY']
-            ax.plot(coorX, coorY, marker=point_data['m'],
-                    color=point_data['c'], markersize=10)
-            texts.append(ax.text(coorX[0], coorY[0], point_label))
+            ax.plot(coorX, coorY, color=point_data['c'])
+            ax.scatter(coorX[1:], coorY[1:], marker=point_data['m'], edgecolors=point_data['c'],
+                       facecolor='none', s=100)
+            ax.plot(coorX[0], coorY[0], marker=f"${point_data['l']}$",
+                    color=point_data['c'], markersize=20)
+            # texts.append(ax.text(coorX[0], coorY[0], point_label))
 
         for ll_col, clus_col in lc.items():
             legend_labels, legend_elements = taxonomy_plotting.custom_legend_elements(
@@ -220,14 +225,14 @@ def plot_pca(pca_data_dict, corr_mat, clus_type_dict, plot_colors, plot_name, pl
     ax.set_xlabel('x', fontsize=15)
     ax.set_ylabel('y', fontsize=15)
     ax.set_title('PCA')
-    ax.set_xlim([-1.1, 1.1])
-    ax.set_ylim([-1.1, 1.1])
+    # ax.set_xlim([-1.1, 1.1])
+    # ax.set_ylim([-1.1, 1.1])
 
     taxonomy_plotting.default_plot_params(ax, legend_elements)
 
     plt.tight_layout()
-    adjust_text(texts, only_move={'points': 'y', 'texts': 'y'}, arrowprops=dict(
-        arrowstyle="->", color='r', lw=1))
+    # adjust_text(texts, only_move={'points': 'y', 'texts': 'y'}, arrowprops=dict(
+    # arrowstyle="->", color='r', lw=1))
 
     plot_name += f'_ct{list(clus_type_dict.keys())[0]}'
 

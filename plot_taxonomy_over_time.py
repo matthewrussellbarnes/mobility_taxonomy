@@ -4,6 +4,7 @@ import pandas as pd
 import math
 
 import taxonomy_plotting_pca
+import taxonomy_plotting
 import utilities
 
 utilities.init()
@@ -25,6 +26,10 @@ for dirpath, dirs, files in os.walk(utilities.dataset_path, topdown=True):
             f"{data_f_name}", utilities.stats_data_path)
 
         stats_df = pd.read_csv(stats_data_f_path)
+
+        # if max(stats_df['nodes']) < 10000:
+        #     continue
+
         for taxonomy_data_f_path in taxonomy_data_f_path_list:
             t = taxonomy_data_f_path[
                 taxonomy_data_f_path.index("_e", taxonomy_data_f_path.index("_dtp")) + 2:
@@ -50,9 +55,11 @@ for dirpath, dirs, files in os.walk(utilities.dataset_path, topdown=True):
 
 # pca_clus_type_list = [['data_type', 'aggl'], ['aggl'], ['data_type'],
         #   ['f_name'],
-pca_clus_type_list = [['data_type', 'struc_type']]
-#   , ['struc_type', 'aggl']]
+pca_clus_type_list = [['data_type', 'struc_type'], ['struc_type', 'aggl']]
 for pct in pca_clus_type_list:
     print(pct)
     taxonomy_plotting_pca.plot_taxonomy_pca_over_time(
         taxonomy_time_steps, clus_name_pair=pct)
+
+    taxonomy_plotting.plot_taxonomy_aspects_over_time(
+        taxonomy_time_steps, clustering_type=pct[0])

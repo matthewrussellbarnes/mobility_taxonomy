@@ -1,4 +1,5 @@
 from numpy.lib.type_check import nan_to_num
+import math
 
 from sklearn.metrics import r2_score
 from sklearn.cluster import AgglomerativeClustering
@@ -12,7 +13,8 @@ def build_taxonomy_data_dict(plot_data_dict, add_net_stats=True):
                           'community': {}, 'delta_assortativity': {}, 'neighbourhood_mobility': {}}
     if add_net_stats:
         taxonomy_data_dict['equality'] = {}
-        # , 'nodes': {}, 'edges': {}}
+        # taxonomy_data_dict['nodes'] = {}
+        # taxonomy_data_dict['edges'] = {}
 
     for data_f_name, plot_data in plot_data_dict.items():
 
@@ -21,6 +23,7 @@ def build_taxonomy_data_dict(plot_data_dict, add_net_stats=True):
             stats_data = plot_data['stats_data']
         t = plot_data['t']
         dt = plot_data['dt']
+        dt_percent = int(plot_data['dt_percent'])
         data_type = plot_data['data_type']
         struc_type = plot_data['struc_type']
 
@@ -45,10 +48,15 @@ def build_taxonomy_data_dict(plot_data_dict, add_net_stats=True):
             neighbourhood, delta_neighbourhood))
 
         if add_net_stats:
+            gini_dt = math.ceil(
+                (len(stats_data['gini_coeff']) / 100) * dt_percent)
             taxonomy_data_dict['equality'][data_label] = (list(
-                stats_data['gini_coeff'])[-1] + 1) / 2
-        # taxonomy_data_dict['nodes'][data_label] = list(stats_data['nodes'])[-1]
-        # taxonomy_data_dict['edges'][data_label] = list(stats_data['edges'])[-1]
+                stats_data['gini_coeff'])[gini_dt] * 2) - 1
+
+            # taxonomy_data_dict['nodes'][data_label] = (list(
+            #     stats_data['nodes'])[gini_dt] / list(stats_data['nodes'])[-1] * 2) - 1
+            # taxonomy_data_dict['edges'][data_label] = (list(
+            #     stats_data['nodes'])[gini_dt] / list(stats_data['edges'])[-1] * 2) - 1
 
     return taxonomy_data_dict
 

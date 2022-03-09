@@ -42,6 +42,7 @@ for dirpath, dirs, files in os.walk(utilities.dataset_path, topdown=True):
             plot_data = {'taxonomy_data': taxonomy_df,
                          'stats_data': stats_df,
                          't': t,
+                         'dt_percent': dt_percent,
                          'dt': int(math.ceil(int(t) * (int(dt_percent) / 100))),
                          'data_type': data_type,
                          'struc_type': struc_type}

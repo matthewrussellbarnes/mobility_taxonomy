@@ -242,4 +242,4 @@ def plot_pca(pca_data_dict, corr_mat, clus_type_dict, plot_colors, plot_name, pl
         plot_name += f"_ct2{list(clus_type_dict.keys())[1]}"
 
     plt.savefig(
-        f"./figs/{plot_folder}/1{plot_name}.png")
+        f"./figs/{plot_folder}/{plot_name}.png")

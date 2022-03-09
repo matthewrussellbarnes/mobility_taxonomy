@@ -339,6 +339,9 @@ def plot_taxonomy_aspects_over_time(taxonomy_time_steps, clustering_type='data_t
                         dl: {ts: correlation}}
 
     for t_aspect, named_time_data in plot_data_dict.items():
+
+        d_label_list = list(named_time_data.keys())
+
         _, ax = plt.subplots(1, 1, figsize=(15, 10))
         for data_name, plot_data in named_time_data.items():
             clt = data_name[data_name.index(':') + 1:]
@@ -346,6 +349,8 @@ def plot_taxonomy_aspects_over_time(taxonomy_time_steps, clustering_type='data_t
                 clustering_type_list.index(clt))
             legend_labels, legend_elements = custom_legend_elements(clt, legend_labels,
                                                                     legend_elements, colour=type_colour)
+            point_letter = \
+                utilities.plot_letters[d_label_list.index(data_name)]
 
             x = list(plot_data.keys())
             x.sort()
@@ -355,6 +360,8 @@ def plot_taxonomy_aspects_over_time(taxonomy_time_steps, clustering_type='data_t
                 y.append(plot_data[tsx])
 
             ax.plot(x, y, color=type_colour)
+            ax.plot(x[0] - 1, y[0],
+                    marker=f"${point_letter}$", markersize=20, color=type_colour)
 
         default_plot_params(ax, legend_elements)
         ax.set_title(t_aspect)
@@ -364,7 +371,7 @@ def plot_taxonomy_aspects_over_time(taxonomy_time_steps, clustering_type='data_t
 
         plt.tight_layout()
         plt.savefig(
-            f"./figs/taxonomy_aspect_over_time/large_{t_aspect}_{clustering_type}.png")
+            f"./figs/taxonomy_aspect_over_time/{t_aspect}_{clustering_type}.png")
 
 #  --------------------------------
 

@@ -49,14 +49,14 @@ def build_taxonomy_data_dict(plot_data_dict, add_net_stats=True):
 
         if add_net_stats:
             gini_dt = math.ceil(
-                (len(stats_data['gini_coeff']) / 100) * dt_percent)
+                (len(stats_data['gini_coeff']) / 100) * (100 - dt_percent))
             taxonomy_data_dict['equality'][data_label] = (list(
                 stats_data['gini_coeff'])[gini_dt] * 2) - 1
 
             # taxonomy_data_dict['nodes'][data_label] = (list(
             #     stats_data['nodes'])[gini_dt] / list(stats_data['nodes'])[-1] * 2) - 1
             # taxonomy_data_dict['edges'][data_label] = (list(
-            #     stats_data['nodes'])[gini_dt] / list(stats_data['edges'])[-1] * 2) - 1
+            #     stats_data['edges'])[gini_dt] / list(stats_data['edges'])[-1] * 2) - 1
 
     return taxonomy_data_dict
 

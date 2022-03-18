@@ -45,7 +45,7 @@ def cluster_plot(points, n_cluster, plot_name, x_label='x', y_label='y'):
 
 def plot_taxonomy_pca_over_time(taxonomy_time_steps, pca_type='corr', clus_name_pair=None, n_cluster=6):
     timesteps = list(taxonomy_time_steps.keys())
-    timesteps.sort()
+    timesteps.sort(reverse=True)
     taxonomy_t0 = taxonomy_time_steps[timesteps[0]]
 
     corr_mat, clus_type_dict, plot_colors, _ = init_plot_pca(
@@ -55,7 +55,8 @@ def plot_taxonomy_pca_over_time(taxonomy_time_steps, pca_type='corr', clus_name_
     for data_f_name in list(taxonomy_t0.keys()):
         taxonomy_timestep_data_dict = {}
         for timestep in timesteps:
-            taxonomy_timestep_data_dict[timestep] = taxonomy_analysis.build_taxonomy_data_dict(
+            actual_timestep = 100 - int(timestep)
+            taxonomy_timestep_data_dict[actual_timestep] = taxonomy_analysis.build_taxonomy_data_dict(
                 {data_f_name: taxonomy_time_steps[timestep][data_f_name]})
 
         for timestep_l, timestep_data in taxonomy_timestep_data_dict.items():
@@ -158,10 +159,14 @@ def plot_pca(pca_data_dict, corr_mat, clus_type_dict, plot_colors, plot_name, pl
                                 break
 
                 point_data_dict['l'] = \
-                    utilities.plot_letters[point_label_list.index(point_label)]
+                    utilities.plot_letters[list(
+                        utilities.structure_type_lookup.keys()).index(point_label)]
 
                 if cni == 0:
-                    point_colour = plot_colors.to_rgba(ll_in)
+                    if point_label == 'IETF':
+                        point_colour = 'black'
+                    else:
+                        point_colour = plot_colors.to_rgba(ll_in)
                     point_data_dict['c'] = point_colour
                     lc[ll] = point_colour
                 elif cni == 1:

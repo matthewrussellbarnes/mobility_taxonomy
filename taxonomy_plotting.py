@@ -314,7 +314,7 @@ def plot_taxonomy_aspects_over_time(taxonomy_time_steps, clustering_type='data_t
 
     plot_data_dict = {}
     for timestep, taxonomy_data in taxonomy_time_steps.items():
-        ts = int(timestep)
+        ts = 100 - int(timestep)
         taxonomy_data_dict = taxonomy_analysis.build_taxonomy_data_dict(
             taxonomy_data)
 
@@ -350,7 +350,8 @@ def plot_taxonomy_aspects_over_time(taxonomy_time_steps, clustering_type='data_t
             legend_labels, legend_elements = custom_legend_elements(clt, legend_labels,
                                                                     legend_elements, colour=type_colour)
             point_letter = \
-                utilities.plot_letters[d_label_list.index(data_name)]
+                utilities.plot_letters[list(
+                    utilities.structure_type_lookup.keys()).index(data_name[:data_name.index(':')])]
 
             x = list(plot_data.keys())
             x.sort()

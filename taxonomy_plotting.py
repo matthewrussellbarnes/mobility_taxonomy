@@ -300,14 +300,17 @@ def plot_taxonomy_pairs_for_multiple_networks(plot_data_dict, dt_percent):
 # --------------------------------
 
 
-def plot_taxonomy_aspects_over_time(taxonomy_time_steps, clustering_type='data_type'):
+def plot_taxonomy_aspects_over_time(taxonomy_time_steps, clustering_type='data_type', highlighted_file='IETF'):
     timesteps = list(taxonomy_time_steps.keys())
     timesteps.sort()
     taxonomy_t0 = taxonomy_time_steps[timesteps[0]]
-    clustering_type_list = list(dict.fromkeys([pdd[clustering_type]
-                                               for pdd in list(taxonomy_t0.values())]))
+    if clustering_type == 'f_name':
+        clustering_type_list = list(taxonomy_t0.keys())
+    else:
+        clustering_type_list = list(dict.fromkeys([pdd[clustering_type]
+                                                   for pdd in list(taxonomy_t0.values())]))
     plot_colors = cm.ScalarMappable(colors.Normalize(
-        0, len(clustering_type_list)), 'tab10')
+        0, len(clustering_type_list)), 'tab20')
 
     legend_labels = []
     legend_elements = []
@@ -325,6 +328,8 @@ def plot_taxonomy_aspects_over_time(taxonomy_time_steps, clustering_type='data_t
                         '#') + 1:data_label.index('$')]
                 elif clustering_type == 'struc_type':
                     ll = data_label[data_label.index('$') + 1:]
+                elif clustering_type == 'f_name':
+                    ll = data_label[:data_label.index(':')]
 
                 dl = f"{data_label[:data_label.index(':')]}:{ll}"
 
@@ -339,14 +344,16 @@ def plot_taxonomy_aspects_over_time(taxonomy_time_steps, clustering_type='data_t
                         dl: {ts: correlation}}
 
     for t_aspect, named_time_data in plot_data_dict.items():
-
-        d_label_list = list(named_time_data.keys())
-
         _, ax = plt.subplots(1, 1, figsize=(15, 10))
         for data_name, plot_data in named_time_data.items():
             clt = data_name[data_name.index(':') + 1:]
-            type_colour = plot_colors.to_rgba(
-                clustering_type_list.index(clt))
+            if data_name.startswith(highlighted_file):
+                type_colour = 'black'
+                z_order = 3
+            else:
+                type_colour = plot_colors.to_rgba(
+                    clustering_type_list.index(clt))
+                z_order = 1
             legend_labels, legend_elements = custom_legend_elements(clt, legend_labels,
                                                                     legend_elements, colour=type_colour)
             point_letter = \
@@ -360,9 +367,9 @@ def plot_taxonomy_aspects_over_time(taxonomy_time_steps, clustering_type='data_t
             for tsx in x:
                 y.append(plot_data[tsx])
 
-            ax.plot(x, y, color=type_colour)
+            ax.plot(x, y, color=type_colour, zorder=z_order, linewidth=z_order)
             ax.plot(x[0] - 1, y[0],
-                    marker=f"${point_letter}$", markersize=20, color=type_colour)
+                    marker=f"${point_letter}$", markersize=20, color=type_colour, zorder=z_order, linewidth=z_order)
 
         default_plot_params(ax, legend_elements)
         ax.set_title(t_aspect)

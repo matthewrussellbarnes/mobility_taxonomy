@@ -104,27 +104,25 @@ def init_plot_pca(plot_data_dict, clus_name_pair=None, pca_type='corr', n_cluste
                 taxonomy_data_per_dataset[dataset] = [aspect_entry]
 
     if 'f_name' in clus_name_pair:
-        f_name_list = list(taxonomy_data_per_dataset.keys())
+        f_name_list = [fn[:fn.index(':')]for fn in list(
+            taxonomy_data_per_dataset.keys())]
         clus_type_dict['f_name'] = f_name_list
 
     if 'aggl' in clus_name_pair:
         clus_type_dict['aggl'] = list(range(n_cluster))
 
     plot_colors = cm.ScalarMappable(colors.Normalize(
-        0, len(clus_type_dict[clus_name_pair[0]])), 'tab10')
+        0, len(clus_type_dict[clus_name_pair[0]])), 'tab20')
 
     return(corr_mat, clus_type_dict, plot_colors, taxonomy_data_per_dataset)
 
 
-def plot_pca(pca_data_dict, corr_mat, clus_type_dict, plot_colors, plot_name, plot_folder):
+def plot_pca(pca_data_dict, corr_mat, clus_type_dict, plot_colors, plot_name, plot_folder, highlighted_file='IETF'):
     # texts = []
     pca_taxonomy = taxonomy_analysis.PCA(
         list(pca_data_dict.values()), 2, corr_mat)
 
     d_label_list = list(pca_data_dict.keys())
-    point_label_list = list(dict.fromkeys(
-        [dl[3:dl.index(':')] for dl in d_label_list]))
-
     named_pca_taxonomy = {}
     for i in range(len(pca_taxonomy)):
         named_pca_taxonomy[d_label_list[i]] = list(pca_taxonomy[i])
@@ -146,6 +144,9 @@ def plot_pca(pca_data_dict, corr_mat, clus_type_dict, plot_colors, plot_name, pl
                 elif 'struc_type' == clus_name:
                     ll = d_label[d_label.index('$') + 1:]
                     ll_in = clus_type_dict[clus_name].index(ll)
+                elif 'f_name' == clus_name:
+                    ll = point_label
+                    ll_in = clus_type_dict[clus_name].index(ll)
                 elif 'aggl' == clus_name:
                     cluster_mat = taxonomy_analysis.clustering(
                         np.array(list(pca_data_dict.values())), len(clus_type_dict[clus_name]))
@@ -163,7 +164,7 @@ def plot_pca(pca_data_dict, corr_mat, clus_type_dict, plot_colors, plot_name, pl
                         utilities.structure_type_lookup.keys()).index(point_label)]
 
                 if cni == 0:
-                    if point_label == 'IETF':
+                    if point_label == highlighted_file:
                         point_colour = 'black'
                     else:
                         point_colour = plot_colors.to_rgba(ll_in)
@@ -220,7 +221,7 @@ def plot_pca(pca_data_dict, corr_mat, clus_type_dict, plot_colors, plot_name, pl
                     # ax.plot(coor[0], coor[1])
                 elif clus_name == 'f_name':
                     ax.scatter(coor[0], coor[1], label=d_label, color=plot_colors.to_rgba(
-                        clus_type_dict[clus_name].index(d_label)))
+                        clus_type_dict[clus_name].index(d_label[3:d_label.index(':')])))
                     # ax.plot(coor[0], coor[1])
 
     else:

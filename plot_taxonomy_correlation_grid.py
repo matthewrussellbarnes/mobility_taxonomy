@@ -9,7 +9,7 @@ import utilities
 
 utilities.init()
 
-dt_percent_list = [10, 25, 50, 75]
+dt_percent_list = [10, 20, 30, 40, 50, 60, 70, 80, 90]
 for dt_percent in dt_percent_list:
     plot_data = {}
     for dirpath, dirs, files in os.walk(utilities.dataset_path, topdown=True):
@@ -39,7 +39,8 @@ for dt_percent in dt_percent_list:
                 'taxonomy_data': taxonomy_df,
                 't': t,
                 'dt': dt,
-                'data_type': data_type
+                'data_type': data_type,
+                'struc_type': 'struc_type'
             }
 
     taxonomy_plotting.plot_grid_taxonomy_correlations(

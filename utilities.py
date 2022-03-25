@@ -106,5 +106,19 @@ structure_type_lookup = {
     'sx-superuser': 'Clique',
     'ucla_net': 'Individual',
     'us_air_traffic': 'Individual',
-    'wiki-talk-temporal': 'Individual'
+    'wiki-talk-temporal': 'Individual',
+    'IETF': 'Star',
+    'IETF_mailing_list_ag': 'Star',
+    'IETF_mailing_list_announcements': 'Star',
+    'IETF_mailing_list_dir': 'Star',
+    'IETF_mailing_list_iab': 'Star',
+    'IETF_mailing_list_ietf@ietf.org': 'Star',
+    'IETF_mailing_list_meeting': 'Star',
+    'IETF_mailing_list_other': 'Star',
+    'IETF_mailing_list_program': 'Star',
+    'IETF_mailing_list_rag': 'Star',
+    'IETF_mailing_list_review': 'Star',
+    'IETF_mailing_list_rg': 'Star',
+    'IETF_mailing_list_team': 'Star',
+    'IETF_mailing_list_wg': 'Star'
 }

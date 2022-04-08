@@ -4,7 +4,7 @@ import pandas as pd
 import math
 
 import taxonomy_plotting_pca
-import taxonomy_plotting
+import taxonomy_plotting_temporal
 import utilities
 
 utilities.init()
@@ -16,9 +16,10 @@ for dirpath, dirs, files in os.walk(utilities.dataset_path, topdown=True):
     filtered_files = filter(lambda file: not file.startswith('.'), files)
     for file in filtered_files:
         data_f_name = os.path.splitext(file)[0]
-        print(data_f_name)
         data_type = os.path.basename(dirpath)
         struc_type = utilities.structure_type_lookup[data_f_name]
+        print(utilities.plot_letters[list(
+            utilities.structure_type_lookup.keys()).index(data_f_name)], data_f_name, data_type, struc_type)
 
         taxonomy_data_f_path_list = utilities.get_file_path_for_multiple(
             f"{data_f_name}", utilities.taxonomy_data_path)
@@ -60,7 +61,13 @@ pca_clus_type_list = [['data_type', 'struc_type'], ['struc_type', 'aggl']]
 for pct in pca_clus_type_list:
     print(pct)
     taxonomy_plotting_pca.plot_taxonomy_pca_over_time(
-        taxonomy_time_steps, clus_name_pair=pct)
+        taxonomy_time_steps, clus_name_pair=pct, highlighted_file='')
 
-    taxonomy_plotting.plot_taxonomy_aspects_over_time(
-        taxonomy_time_steps, clustering_type=pct[0])
+    taxonomy_plotting_temporal.plot_taxonomy_aspects_over_time(
+        taxonomy_time_steps, clustering_type=pct[0], highlighted_file='')
+
+    taxonomy_plotting_temporal.plot_low_degree_ratio(
+        taxonomy_time_steps, clustering_type=pct[0], highlighted_file='')
+
+    # taxonomy_plotting_temporal.plot_high_degree_nodes(
+    #     taxonomy_time_steps, clustering_type=pct[0], highlighted_file='')

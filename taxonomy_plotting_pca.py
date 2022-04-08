@@ -43,7 +43,7 @@ def cluster_plot(points, n_cluster, plot_name, x_label='x', y_label='y'):
         f"./figs/clusters/cluster_{plot_name}_nc{n_cluster}.png")
 
 
-def plot_taxonomy_pca_over_time(taxonomy_time_steps, pca_type='corr', clus_name_pair=None, n_cluster=6):
+def plot_taxonomy_pca_over_time(taxonomy_time_steps, pca_type='corr', clus_name_pair=None, n_cluster=6, highlighted_file=''):
     timesteps = list(taxonomy_time_steps.keys())
     timesteps.sort(reverse=True)
     taxonomy_t0 = taxonomy_time_steps[timesteps[0]]
@@ -71,7 +71,7 @@ def plot_taxonomy_pca_over_time(taxonomy_time_steps, pca_type='corr', clus_name_
                             aspect_entry]
 
     plot_pca(taxonomy_data_per_timestep_dataset, corr_mat, clus_type_dict, plot_colors,
-             f'PCA{pca_type}', 'multi_taxonomy_pca')
+             f'{highlighted_file}PCA{pca_type}', 'multi_taxonomy_pca', highlighted_file=highlighted_file)
 
 
 def init_plot_pca(plot_data_dict, clus_name_pair=None, pca_type='corr', n_cluster=6):
@@ -117,7 +117,7 @@ def init_plot_pca(plot_data_dict, clus_name_pair=None, pca_type='corr', n_cluste
     return(corr_mat, clus_type_dict, plot_colors, taxonomy_data_per_dataset)
 
 
-def plot_pca(pca_data_dict, corr_mat, clus_type_dict, plot_colors, plot_name, plot_folder, highlighted_file='IETF'):
+def plot_pca(pca_data_dict, corr_mat, clus_type_dict, plot_colors, plot_name, plot_folder, highlighted_file=''):
     # texts = []
     pca_taxonomy = taxonomy_analysis.PCA(
         list(pca_data_dict.values()), 2, corr_mat)

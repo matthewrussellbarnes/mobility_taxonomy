@@ -3,6 +3,7 @@ import re
 import matplotlib.pyplot as plt
 from matplotlib import colors
 import string
+import json
 
 figs_path = os.path.join(os.getcwd(), 'figs/')
 taxonomy_data_path = os.path.join(os.getcwd(), 'taxonomies')
@@ -75,50 +76,7 @@ def mscatter(x, y, ax=None, m=None, **kw):
 
 #   ------
 
-structure_type_lookup = {
-    'CollegeMsg': 'Star',
-    'SCOTUS_majority': 'Star',
-    'amazon_ratings': 'Bipartite',
-    'apostles_bible': 'Individual',
-    'appollonius': 'Individual',
-    'cit_us_patents': 'Star',
-    'classical_piano': 'Individual',
-    'email-Eu-core-temporal': 'Star',
-    'eu_procurements': 'Bipartite',
-    'facebook_wall': 'Star',
-    'lotr': 'Individual',
-    'luke_bible': 'Individual',
-    'nokia_investor_correlations_financial_institution': 'Individual',
-    'phd_exchange': 'Star',
-    'programming_language_influence': 'Star',
-    'reuters_terror_news': 'Individual',
-    'route_net': 'Individual',
-    'soc-redditHyperlinks-body': 'Clique',
-    'soc-redditHyperlinks-title': 'Individual',
-    'sp_hospital': 'Spatial',
-    'sp_hypertext_conference': 'Spatial',
-    'sp_infectious': 'Spatial',
-    'sp_office': 'Spatial',
-    'sp_primary_school': 'Spatial',
-    'sx-askubuntu': 'Clique',
-    'sx-mathoverflow': 'Clique',
-    'sx-stackoverflow': 'Clique',
-    'sx-superuser': 'Clique',
-    'ucla_net': 'Individual',
-    'us_air_traffic': 'Individual',
-    'wiki-talk-temporal': 'Individual',
-    'IETF': 'Star',
-    'IETF_mailing_list_ag': 'Star',
-    'IETF_mailing_list_announcements': 'Star',
-    'IETF_mailing_list_dir': 'Star',
-    'IETF_mailing_list_iab': 'Star',
-    'IETF_mailing_list_ietf@ietf.org': 'Star',
-    'IETF_mailing_list_meeting': 'Star',
-    'IETF_mailing_list_other': 'Star',
-    'IETF_mailing_list_program': 'Star',
-    'IETF_mailing_list_rag': 'Star',
-    'IETF_mailing_list_review': 'Star',
-    'IETF_mailing_list_rg': 'Star',
-    'IETF_mailing_list_team': 'Star',
-    'IETF_mailing_list_wg': 'Star'
-}
+# {'dataset_name' : 'structure_type' }
+with open('structure_type_lookup.json') as f:
+    structure_type_lookup = json.load(f)
+    f.close()

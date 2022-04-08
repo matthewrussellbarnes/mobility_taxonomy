@@ -5,11 +5,12 @@ import math
 
 import ingest
 import taxonomy_plotting_pca
+import taxonomy_plotting
 import utilities
 
 utilities.init()
 
-dt_percent_list = [10, 25, 50, 75]
+dt_percent_list = [10]  # , 25, 50, 75]
 for dt_percent in dt_percent_list:
     plot_data = {}
     for dirpath, dirs, files in os.walk(utilities.dataset_path, topdown=True):
@@ -49,16 +50,17 @@ for dt_percent in dt_percent_list:
                 'struc_type': struc_type
             }
 
-    pca_clus_type_list = [['data_type', 'aggl'], ['aggl'], ['data_type'],
-                          ['f_name'], ['data_type', 'struc_type'], ['struc_type', 'aggl']]
-    for pct in pca_clus_type_list:
-        print(pct)
-        taxonomy_plotting.plot_taxonomy_pca(
-            plot_data, dt_percent, clus_name_pair=pct)
+# pca_clus_type_list = [['aggl']]
+# [['data_type', 'aggl'], ['aggl'], ['data_type'],
+#   ['f_name'], ['data_type', 'struc_type'], ['struc_type', 'aggl']]
+# for pct in pca_clus_type_list:
+# print(pct)
+# taxonomy_plotting_pca.plot_taxonomy_pca(
+#     plot_data, dt_percent, clus_name_pair=pct)
 
-    equality_type_list = ['norm_it', 'norm_time']
-    equality_clus_type_list = ['data_type', 'struc_type']
-    for eqt in equality_type_list:
-        for clt in equality_clus_type_list:
-            taxonomy_plotting.plot_equality(
-                plot_data, y_type=eqt, clustering_type=clt)
+equality_type_list = ['norm_it', 'norm_time']
+equality_clus_type_list = ['data_type', 'struc_type']
+for eqt in equality_type_list:
+    for clt in equality_clus_type_list:
+        taxonomy_plotting.plot_equality(
+            plot_data, y_type=eqt, clustering_type=clt)

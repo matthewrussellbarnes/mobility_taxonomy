@@ -14,10 +14,12 @@ def default_plot_params(ax, legend_elements=None):
     ax.minorticks_on()
     ax.grid(which="major", alpha=1)
     ax.grid(which="minor", alpha=0.2)
-    ax.tick_params(axis='both', labelsize=15)
+    ax.tick_params(axis='both', labelsize=utilities.plot_font_size)
+    plt.rcParams.update({'font.size': 20})
     if legend_elements:
-        ax.legend(handles=legend_elements, bbox_to_anchor=(
-            0.5, -0.2), loc='upper center', ncol=2)
+        ax.legend(handles=legend_elements,
+                  # bbox_to_anchor=(0.5, -0.2), loc='upper center',
+                  ncol=2)
     else:
         ax.legend(bbox_to_anchor=(0.5, -0.2), loc='upper center', ncol=3)
 
@@ -135,8 +137,9 @@ def plot_taxonomy_for_single_network(ax, taxonomy_data, plot_label=''):
     ax.bar(['mobility', 'assortativity', 'philanthropy', 'commmunity', 'delta_assortativity', 'nbrhd_mobility'], [
            mobility, assortativity, philanthropy, individuality_community, delta_assortativity, neighbourhood_mobility])
 
-    ax.set_xlabel('Taxonomy', fontsize=15)
-    ax.set_ylabel('Pearson Correlation Coefficient', fontsize=15)
+    ax.set_xlabel('Taxonomy', fontsize=utilities.plot_font_size)
+    ax.set_ylabel('Pearson Correlation Coefficient',
+                  fontsize=utilities.plot_font_size)
     ax.set_title(f"Taxonomy for {plot_label}")
     ax.set_ylim([-1.1, 1.1])
 
@@ -194,10 +197,11 @@ def plot_taxonomy_for_multiple_networks(ax, plot_data_dict, dt_percent):
 
     plt.xticks(r + width / len(plot_data_dict), x_axis_labels)
     for tick in ax.xaxis.get_major_ticks()[1::2]:
-        tick.set_pad(25)
+        tick.set_pad(utilities.plot_font_size)
 
-    ax.set_xlabel('Taxonomy', fontsize=15)
-    ax.set_ylabel('Pearson Correlation Coefficient', fontsize=15)
+    ax.set_xlabel('Taxonomy', fontsize=utilities.plot_font_size)
+    ax.set_ylabel('Pearson Correlation Coefficient',
+                  fontsize=utilities.plot_font_size)
     ax.set_title(f"Taxonomy Comparison")
     ax.set_ylim([-1.1, 1.1])
 
@@ -285,8 +289,8 @@ def plot_taxonomy_pairs_for_multiple_networks(plot_data_dict, dt_percent):
                 legend_labels, legend_elements = custom_legend_elements(
                     d_label[d_label.index('#') + 1:], legend_labels, legend_elements, colour=type_colour)
                 ax.scatter(x_corr, y_corr, color=type_colour)
-            ax.set_xlabel(x_label, fontsize=15)
-            ax.set_ylabel(y_label, fontsize=15)
+            ax.set_xlabel(x_label, fontsize=utilities.plot_font_size)
+            ax.set_ylabel(y_label, fontsize=utilities.plot_font_size)
             ax.set_title(f"{x_label} vs {y_label} Correlation Comparison")
             ax.set_xlim([-1.1, 1.1])
             ax.set_ylim([-1.1, 1.1])
@@ -323,7 +327,7 @@ def plot_grid_taxonomy_correlations(plot_data_dict, dt_percent):
             for pos_y in range(len(grid_data[pos_x])):
                 label = round(grid_data[pos_x][pos_y], 2)
                 ax.text(pos_x, pos_y, label, color='black',
-                        ha='center', va='center', fontsize=15)
+                        ha='center', va='center', fontsize=utilities.plot_font_size)
 
         ax.set_xticklabels(plot_labels)
         ax.set_xticks([0, 1, 2, 3, 4, 5])
@@ -332,7 +336,7 @@ def plot_grid_taxonomy_correlations(plot_data_dict, dt_percent):
 
         ax.tick_params(axis='both', labelsize=15)
         for tick in ax.xaxis.get_major_ticks()[1::2]:
-            tick.set_pad(25)
+            tick.set_pad(utilities.plot_font_size)
 
         fig.colorbar(im)
         plt.tight_layout()
@@ -376,11 +380,12 @@ def plot_equality(plot_data_dict, y_type=None, clustering_type='data_type'):
                 else:
                     norm_time_list.append(
                         (t - min_time) / (max_time - min_time))
-            ax.set_xlabel('Normalised Time', fontsize=15)
+            ax.set_xlabel('Normalised Time', fontsize=utilities.plot_font_size)
         else:
             max_it = len(time_list)
             norm_time_list = [i / max_it for i, _ in enumerate(time_list)]
-            ax.set_xlabel('Normalised Iteration', fontsize=15)
+            ax.set_xlabel('Normalised Iteration',
+                          fontsize=utilities.plot_font_size)
 
         equality_list = list(stats_data['gini_coeff'][1:])
 
@@ -389,8 +394,8 @@ def plot_equality(plot_data_dict, y_type=None, clustering_type='data_type'):
         legend_labels, legend_elements = custom_legend_elements(clt, legend_labels,
                                                                 legend_elements, colour=type_colour)
         ax.plot(norm_time_list, equality_list, color=type_colour)
-        ax.set_ylabel('Equality', fontsize=15)
-        ax.set_title('Equality over time')
+        ax.set_ylabel('Gini Coefficient', fontsize=utilities.plot_font_size)
+        # ax.set_title('Equality over time')
         ax.set_ylim([-0.1, 1.1])
 
     default_plot_params(ax, legend_elements)

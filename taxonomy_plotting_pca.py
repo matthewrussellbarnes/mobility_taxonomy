@@ -30,8 +30,8 @@ def cluster_plot(points, n_cluster, plot_name, x_label='x', y_label='y'):
         ax.scatter(points[cluster_mat == nc, 0], points[cluster_mat ==
                                                         nc, 1], s=100, label=f"cluster{nc}", color=plot_colors.to_rgba(nc))
 
-    ax.set_xlabel(x_label, fontsize=15)
-    ax.set_ylabel(y_label, fontsize=15)
+    ax.set_xlabel(x_label, fontsize=utilities.plot_font_size)
+    ax.set_ylabel(y_label, fontsize=utilities.plot_font_size)
     ax.set_title('Clustering')
     ax.set_xlim([-1.1, 1.1])
     ax.set_ylim([-1.1, 1.1])
@@ -228,11 +228,11 @@ def plot_pca(pca_data_dict, corr_mat, clus_type_dict, plot_colors, plot_name, pl
         print('Too many or few clustering types chosen')
         sys.exit()
 
-    ax.set_xlabel('x', fontsize=15)
-    ax.set_ylabel('y', fontsize=15)
-    ax.set_title('PCA')
+    # ax.set_xlabel('x', fontsize=utilities.plot_font_size)
+    # ax.set_ylabel('y', fontsize=utilities.plot_font_size)
+    # ax.set_title('PCA')
     # ax.set_xlim([-1.1, 1.1])
-    # ax.set_ylim([-1.1, 1.1])
+    ax.set_ylim([-1.27, 1.0])
 
     taxonomy_plotting.default_plot_params(ax, legend_elements)
 

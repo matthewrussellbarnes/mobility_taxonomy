@@ -18,6 +18,8 @@ cmap10 = colors.ListedColormap(['#ffe119', '#4363d8', '#f58231',
 plot_markers = ["o", "s", "D", "*", 'P', 'X', '1', 'v', 'p', '$£$']
 plot_letters = list(string.ascii_letters)
 
+plot_font_size = 22
+
 
 def init():
     if not os.path.exists(figs_path):

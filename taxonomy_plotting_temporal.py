@@ -163,12 +163,21 @@ def init_plot_temporal(taxonomy_time_steps, clustering_type):
     return(clustering_type_list, plot_colors)
 
 
-def plot_temporal(plot_data_dict, plot_colors, clustering_type_list, plot_folder, plot_name, ylabel, ylim=None, highlighted_file=None):
+def plot_temporal(plot_data_dict, plot_colors, clustering_type_list, plot_folder, plot_name, ylabel, ylim=None, highlighted_file=None, multi=False):
     legend_labels = []
     legend_elements = []
 
+    if multi:
+        _, axes = plt.subplots(3, 2, figsize=(15, 10))
+        axes = axes.flatten()
+    i = 0
     for plot_type, named_time_data in plot_data_dict.items():
-        _, ax = plt.subplots(1, 1, figsize=(15, 10))
+        if multi and plot_type in ['equality']:
+            # , 'assortativity', 'delta_assortativity']:
+            ax = axes[i]
+            continue
+        else:
+            _, ax = plt.subplots(1, 1, figsize=(15, 10))
         for data_name, plot_data in named_time_data.items():
             clt = data_name[data_name.index(':') + 1:]
             if highlighted_file and data_name.startswith(highlighted_file):
@@ -192,17 +201,21 @@ def plot_temporal(plot_data_dict, plot_colors, clustering_type_list, plot_folder
             for tsx in x:
                 y.append(plot_data[tsx])
 
-            ax.plot(x, y, color=type_colour, zorder=z_order, linewidth=z_order)
-            ax.plot(x[0] - 1, y[0],
-                    marker=f"${point_letter}$", markersize=20, color=type_colour, zorder=z_order, linewidth=z_order)
+            ax.plot(x, y, color=type_colour, zorder=z_order)
+            #  , linewidth=z_order)
+            # ax.plot(x[0] - 1, y[0],
+            #              marker=f"${point_letter}$", markersize=20, color=type_colour, zorder=z_order, linewidth=z_order)
 
         taxonomy_plotting.default_plot_params(ax, legend_elements)
-        ax.set_title(plot_type)
-        ax.set_xlabel('Timestep')
-        ax.set_ylabel(ylabel)
+        ax.set_title(plot_type, fontsize=utilities.plot_font_size)
+        ax.set_xlabel('Percentage of Edges',
+                      fontsize=utilities.plot_font_size)
+        ax.set_ylabel(ylabel, fontsize=utilities.plot_font_size)
         if ylim:
             ax.set_ylim(ylim)
 
+        i += 1
+
         plt.tight_layout()
         plt.savefig(
-            f"./figs/{plot_folder}/{plot_type}_{plot_name}.png")
+            f"./figs/{plot_folder}/{'multi_' if multi else ''}{plot_type}_{plot_name}.png")

@@ -189,15 +189,3 @@ def normalise(p):
             p_norm[i] = p / sum_p
 
     return p_norm
-
-
-for i in range(25):
-    create_artificial_network(
-        probs_list=['gamma_n_change', 'preferential_attachment'], iterations=5000, f_name_modifier=i)
-# create_artificial_network(
-#     probs_list=['preferential_attachment'], iterations=5000)
-# create_artificial_network(probs_list=['fitness'], iterations=5000)
-# create_artificial_network(probs_list=['gamma_n_change'], iterations=5000)
-# create_artificial_network(
-#     probs_list=['gamma_n_change', 'preferential_attachment'], iterations=5000)
-# create_artificial_network(probs_list=['equality'], iterations=5000)

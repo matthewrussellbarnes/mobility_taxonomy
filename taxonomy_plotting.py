@@ -15,7 +15,6 @@ def default_plot_params(ax, legend_elements=None):
     ax.grid(which="major", alpha=1)
     ax.grid(which="minor", alpha=0.2)
     ax.tick_params(axis='both', labelsize=utilities.plot_font_size)
-    plt.rcParams.update({'font.size': 20})
     if legend_elements:
         ax.legend(handles=legend_elements,
                   # bbox_to_anchor=(0.5, -0.2), loc='upper center',
@@ -283,11 +282,11 @@ def plot_taxonomy_pairs_for_multiple_networks(plot_data_dict, dt_percent):
             _, ax = plt.subplots(1, 1, figsize=(15, 10))
             for d_label, x_corr in x_data.items():
                 y_corr = y_data[d_label]
-
+                data_type = d_label[d_label.index('#') + 1:d_label.index('$')]
                 type_colour = plot_colors.to_rgba(
-                    data_type_list.index(d_label[d_label.index('#') + 1:]))
+                    data_type_list.index(data_type))
                 legend_labels, legend_elements = custom_legend_elements(
-                    d_label[d_label.index('#') + 1:], legend_labels, legend_elements, colour=type_colour)
+                    data_type, legend_labels, legend_elements, colour=type_colour)
                 ax.scatter(x_corr, y_corr, color=type_colour)
             ax.set_xlabel(x_label, fontsize=utilities.plot_font_size)
             ax.set_ylabel(y_label, fontsize=utilities.plot_font_size)
@@ -306,7 +305,7 @@ def plot_taxonomy_pairs_for_multiple_networks(plot_data_dict, dt_percent):
 
 def plot_grid_taxonomy_correlations(plot_data_dict, dt_percent):
     taxonomy_data_dict = taxonomy_analysis.build_taxonomy_data_dict(
-        plot_data_dict, False)
+        plot_data_dict, True)
     plot_labels = [label.replace('_', ' ').title().replace('Delta', 'Change in')
                    for label, _ in taxonomy_data_dict.items()]
 
@@ -330,9 +329,9 @@ def plot_grid_taxonomy_correlations(plot_data_dict, dt_percent):
                         ha='center', va='center', fontsize=utilities.plot_font_size)
 
         ax.set_xticklabels(plot_labels)
-        ax.set_xticks([0, 1, 2, 3, 4, 5])
+        ax.set_xticks([0, 1, 2, 3, 4, 5, 6])
         ax.set_yticklabels(plot_labels)
-        ax.set_yticks([0, 1, 2, 3, 4, 5])
+        ax.set_yticks([0, 1, 2, 3, 4, 5, 6])
 
         ax.tick_params(axis='both', labelsize=15)
         for tick in ax.xaxis.get_major_ticks()[1::2]:
@@ -341,7 +340,7 @@ def plot_grid_taxonomy_correlations(plot_data_dict, dt_percent):
         fig.colorbar(im)
         plt.tight_layout()
         plt.savefig(
-            f"./figs/taxonomy_grid/grid_{plot_name}_dt{dt_percent}.png")
+            f"./figs/taxonomy_grid/grid_{plot_name}_dt{dt_percent}_with_gini.png")
 
 # -------------------------
 

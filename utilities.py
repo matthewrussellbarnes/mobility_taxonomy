@@ -29,7 +29,7 @@ def init():
     if not os.path.exists(stats_data_path):
         os.mkdir(stats_data_path)
     plt.rcParams.update(
-        {'axes.labelsize': 'large', 'axes.titlesize': 'xx-large'})
+        {'axes.labelsize': 'large', 'axes.titlesize': 'xx-large', 'font.size': plot_font_size})
 
 
 def get_file_path(f_name, path):

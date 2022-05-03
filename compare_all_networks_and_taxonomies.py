@@ -11,7 +11,7 @@ import utilities
 
 utilities.init()
 
-dt_percent_list = [10, 25, 50, 75]
+dt_percent_list = [10, 20, 30, 40, 50, 60, 70, 80, 90]
 for dt_percent in dt_percent_list:
     _, ax = plt.subplots(1, 1, figsize=(15, 10))
 
@@ -44,13 +44,9 @@ for dt_percent in dt_percent_list:
                 'taxonomy_data': taxonomy_df,
                 't': t,
                 'dt': dt,
-                'data_type': data_type
+                'data_type': data_type,
+                'struc_type': 'struc_type'
             }
 
     taxonomy_plotting.plot_taxonomy_for_multiple_networks(
         ax, plot_data, dt_percent)
-
-
-# df = pd.DataFrame([111, 221, 211, 211, 32, 211, 32, 22], columns=['a'])
-# print(df['a'].values)
-# print(pd.DataFrame(df.groupby('a')).at[3, 0])

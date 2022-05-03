@@ -3,64 +3,52 @@ import os
 import pandas as pd
 import math
 
-import ingest
-import taxonomy_plotting_pca
+import MobilityTaxonomy
 import taxonomy_plotting
+import taxonomy_plotting_pca
 import utilities
 
 utilities.init()
 
-dt_percent_list = [10]  # , 25, 50, 75]
+dt_percent_list = [10]  # , 20, 30, 40, 50, 60, 70, 80, 90]
+mt_list = []
+for dirpath, dirs, files in os.walk(utilities.dataset_path, topdown=True):
+    dirs[:] = [d for d in dirs if d != 'archive']
+    filtered_files = filter(lambda file: not file.startswith('.'), files)
+    for file in filtered_files:
+        mt = MobilityTaxonomy.MobilityTaxonomy(
+            file,
+            dt_percent_list,
+            os.path.basename(dirpath),
+            utilities.structure_type_lookup[os.path.splitext(file)[0]])
+        mt.build()
+        mt_list.append(mt)
+
 for dt_percent in dt_percent_list:
     plot_data = {}
-    for dirpath, dirs, files in os.walk(utilities.dataset_path, topdown=True):
-        dirs[:] = [d for d in dirs if d != 'archive']
-        filtered_files = filter(lambda file: not file.startswith('.'), files)
-        for file in filtered_files:
-            data_f_name = os.path.splitext(file)[0]
-            print(data_f_name)
-            data_type = os.path.basename(dirpath)
-            struc_type = utilities.structure_type_lookup[data_f_name]
+    for mob_tax in mt_list:
+        plot_data[mob_tax.networkf] = {
+            'taxonomy_data': mob_tax.taxonomy_df_dict[dt_percent],
+            'stats_data': mob_tax.stats_df,
+            't': mob_tax.t,
+            'dt': int(math.ceil(int(mob_tax.t) * (dt_percent / 100))),
+            'dt_percent': dt_percent,
+            'data_type': mob_tax.data_type,
+            'struc_type': mob_tax.struc_type
+        }
 
-            taxonomy_data_f_path = utilities.get_file_path(
-                f"{data_f_name}_dtp{dt_percent}", utilities.taxonomy_data_path)
-            stats_data_f_path = utilities.get_file_path(
-                f"{data_f_name}", utilities.stats_data_path)
+    pca_clus_type_list = [['aggl']]
+    # [['data_type', 'aggl'], ['aggl'], ['data_type'],
+    #  ['f_name'], ['data_type', 'struc_type'], ['struc_type', 'aggl']]
+    for pct in pca_clus_type_list:
+        print(pct)
+        taxonomy_plotting_pca.plot_taxonomy_pca(
+            plot_data, dt_percent, clus_name_pair=pct)
 
-            if taxonomy_data_f_path:
-                t = taxonomy_data_f_path[
-                    taxonomy_data_f_path.index("_e", taxonomy_data_f_path.index("_dtp")) + 2:
-                    taxonomy_data_f_path.index("_", taxonomy_data_f_path.index("_e", taxonomy_data_f_path.index("_dtp")) + 2)]
-                taxonomy_df = pd.read_csv(taxonomy_data_f_path)
-
-                stats_df = pd.read_csv(stats_data_f_path)
-
-            else:
-                network_data = ingest.build_taxonomy(
-                    data_f_name, dt_percent)
-
-            dt = int(math.ceil(int(t) * (dt_percent / 100)))
-
-            plot_data[data_f_name] = {
-                'taxonomy_data': taxonomy_df,
-                'stats_data': stats_df,
-                't': t,
-                'dt': dt,
-                'data_type': data_type,
-                'struc_type': struc_type
-            }
-
-# pca_clus_type_list = [['aggl']]
-# [['data_type', 'aggl'], ['aggl'], ['data_type'],
-#   ['f_name'], ['data_type', 'struc_type'], ['struc_type', 'aggl']]
-# for pct in pca_clus_type_list:
-# print(pct)
-# taxonomy_plotting_pca.plot_taxonomy_pca(
-#     plot_data, dt_percent, clus_name_pair=pct)
-
-equality_type_list = ['norm_it', 'norm_time']
-equality_clus_type_list = ['data_type', 'struc_type']
-for eqt in equality_type_list:
-    for clt in equality_clus_type_list:
-        taxonomy_plotting.plot_equality(
-            plot_data, y_type=eqt, clustering_type=clt)
+    equality_type_list = ['norm_it', 'norm_time']
+    equality_clus_type_list = ['data_type', 'struc_type']
+    for eqt in equality_type_list:
+        for clt in equality_clus_type_list:
+            print(eqt, clt)
+            taxonomy_plotting.plot_equality(
+                plot_data, y_type=eqt, clustering_type=clt)

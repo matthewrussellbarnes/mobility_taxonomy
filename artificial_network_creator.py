@@ -55,7 +55,7 @@ def create_artificial_network(probs_list=['random'], initial_n=10, iterations=20
                 if nx.density(G) == 1:
                     return
                 n1, n1_edges = get_node_1(G, probs)
-                n2 = get_node_2(G, probs, n1_edges)
+                n2 = get_node_2(probs, n1_edges)
                 G.add_edge(n1, n2)
 
                 writer.writerow({'n1': n1, 'n2': n2, 'creation_time': i})
@@ -88,7 +88,7 @@ def get_node_1(G, probs):
     return n1, n1_edges
 
 
-def get_node_2(G, probs, n1_edges):
+def get_node_2(probs, n1_edges):
     n2_node_list = list(probs.keys())
     n2_probs_list = list(probs.values())
 

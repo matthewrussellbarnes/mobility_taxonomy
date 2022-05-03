@@ -9,9 +9,10 @@ import utilities
 import compute_equality
 
 
-def build_taxonomy(data_f_name, di_percent_list, max_rows=0):
-    data_path = os.path.join(utilities.dataset_path, f"{data_f_name}.csv")
+def build_taxonomy(networkf, di_percent_list, max_rows=0):
+    data_path = os.path.join(utilities.dataset_path, networkf)
 
+    data_f_name = os.path.splitext(networkf)[0]
     stats_file_exists = os.path.exists(os.path.join(
         utilities.stats_data_path, f"{data_f_name}.txt"))
 
@@ -81,6 +82,8 @@ def build_taxonomy(data_f_name, di_percent_list, max_rows=0):
     if not stats_file_exists:
         path = f"{utilities.stats_data_path}/{data_f_name}.txt"
         stats_df.to_csv(path, index=False)
+
+    return taxonomy_df_dict, stats_df, G.number_of_edges()
 
 
 def calculate_t1_stats(G, t2, max_i, di_percent, ct_list, t1_stats_dict):

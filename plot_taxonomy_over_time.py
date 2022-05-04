@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import math
 
+import MobilityTaxonomy
 import taxonomy_plotting_pca
 import taxonomy_plotting_temporal
 import utilities
@@ -11,42 +12,30 @@ utilities.init()
 
 taxonomy_time_steps = {}
 for dirpath, dirs, files in os.walk(utilities.dataset_path, topdown=True):
-    print(list(files))
     dirs[:] = [d for d in dirs if d != 'archive']
     filtered_files = filter(lambda file: not file.startswith('.'), files)
     for file in filtered_files:
+        mt = MobilityTaxonomy.MobilityTaxonomy(
+            file,
+            utilities.dt_percent_list,
+            os.path.basename(dirpath),
+            utilities.structure_type_lookup[os.path.splitext(file)[0]])
+        mt.build(save=True)
+
         data_f_name = os.path.splitext(file)[0]
-        data_type = os.path.basename(dirpath)
-        struc_type = utilities.structure_type_lookup[data_f_name]
         print(utilities.plot_letters[list(
-            utilities.structure_type_lookup.keys()).index(data_f_name)], data_f_name, data_type, struc_type)
+            utilities.structure_type_lookup.keys()).index(data_f_name)],
+            data_f_name, mt.data_type, mt.struc_type)
 
-        taxonomy_data_f_path_list = utilities.get_file_path_for_multiple(
-            f"{data_f_name}", utilities.taxonomy_data_path)
-        stats_data_f_path = utilities.get_file_path(
-            f"{data_f_name}", utilities.stats_data_path)
-
-        stats_df = pd.read_csv(stats_data_f_path)
-
-        # if max(stats_df['nodes']) < 10000:
-        #     continue
-
-        for taxonomy_data_f_path in taxonomy_data_f_path_list:
-            t = taxonomy_data_f_path[
-                taxonomy_data_f_path.index("_e", taxonomy_data_f_path.index("_dtp")) + 2:
-                taxonomy_data_f_path.index("_", taxonomy_data_f_path.index("_e", taxonomy_data_f_path.index("_dtp")) + 2)]
-            dt_percent = taxonomy_data_f_path[
-                taxonomy_data_f_path.index("_dtp") + 4:
-                taxonomy_data_f_path.index("_", taxonomy_data_f_path.index("_dtp") + 4)]
-            taxonomy_df = pd.read_csv(taxonomy_data_f_path)
-
+        for dt_percent, taxonomy_df in mt.taxonomy_df_dict.items():
             plot_data = {'taxonomy_data': taxonomy_df,
-                         'stats_data': stats_df,
-                         't': t,
+                         'stats_data': mt.stats_df,
+                         't': mt.t,
                          'dt_percent': dt_percent,
-                         'dt': int(math.ceil(int(t) * (int(dt_percent) / 100))),
-                         'data_type': data_type,
-                         'struc_type': struc_type}
+                         'dt': int(math.ceil(int(mt.t) * (int(dt_percent) / 100))),
+                         'data_type': mt.data_type,
+                         'struc_type': mt.struc_type}
+
             if dt_percent in taxonomy_time_steps:
                 taxonomy_time_steps[dt_percent][data_f_name] = plot_data
 
@@ -66,8 +55,8 @@ for pct in pca_clus_type_list:
     taxonomy_plotting_temporal.plot_taxonomy_aspects_over_time(
         taxonomy_time_steps, clustering_type=pct[0], highlighted_file='')
 
-    taxonomy_plotting_temporal.plot_low_degree_ratio(
-        taxonomy_time_steps, clustering_type=pct[0], highlighted_file='')
+    # taxonomy_plotting_temporal.plot_low_degree_ratio(
+    #     taxonomy_time_steps, clustering_type=pct[0], highlighted_file='')
 
     # taxonomy_plotting_temporal.plot_high_degree_nodes(
     #     taxonomy_time_steps, clustering_type=pct[0], highlighted_file='')

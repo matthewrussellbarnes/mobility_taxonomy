@@ -10,6 +10,8 @@ taxonomy_data_path = os.path.join(os.getcwd(), 'taxonomies')
 stats_data_path = os.path.join(os.getcwd(), 'network_stats')
 dataset_path = os.path.join(os.getcwd(), 'datasets')
 
+dt_percent_list = [10, 20, 30, 40, 50, 60, 70, 80, 90]
+
 cmap20 = colors.ListedColormap(['#e6194B', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#42d4f4', '#f032e6', '#bfef45', '#fabed4',
                                 '#469990', '#dcbeff', '#9A6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#a9a9a9', '#000000'])
 cmap10 = colors.ListedColormap(['#ffe119', '#4363d8', '#f58231',
@@ -29,7 +31,7 @@ def init():
     if not os.path.exists(stats_data_path):
         os.mkdir(stats_data_path)
     plt.rcParams.update(
-        {'axes.labelsize': 'large', 'axes.titlesize': 'xx-large', 'font.size': plot_font_size})
+        {'axes.labelsize': plot_font_size, 'axes.titlesize': plot_font_size, 'font.size': 18})
 
 
 def get_file_path(f_name, path):

@@ -1,6 +1,4 @@
-import matplotlib.pyplot as plt
 import os
-import pandas as pd
 import math
 
 import MobilityTaxonomy
@@ -10,7 +8,7 @@ import utilities
 
 utilities.init()
 
-dt_percent_list = [10]  # , 20, 30, 40, 50, 60, 70, 80, 90]
+dt_percent_list = [utilities.dt_percent_list[0]]
 mt_list = []
 for dirpath, dirs, files in os.walk(utilities.dataset_path, topdown=True):
     dirs[:] = [d for d in dirs if d != 'archive']
@@ -21,7 +19,7 @@ for dirpath, dirs, files in os.walk(utilities.dataset_path, topdown=True):
             dt_percent_list,
             os.path.basename(dirpath),
             utilities.structure_type_lookup[os.path.splitext(file)[0]])
-        mt.build()
+        mt.build(save=True)
         mt_list.append(mt)
 
 for dt_percent in dt_percent_list:

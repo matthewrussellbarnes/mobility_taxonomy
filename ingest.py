@@ -9,7 +9,7 @@ import utilities
 import compute_equality
 
 
-def build_taxonomy(networkf, di_percent_list, max_rows=0):
+def build_taxonomy(networkf, di_percent_list, max_rows=0, save=True):
     data_path = os.path.join(utilities.dataset_path, networkf)
 
     data_f_name = os.path.splitext(networkf)[0]
@@ -75,13 +75,14 @@ def build_taxonomy(networkf, di_percent_list, max_rows=0):
 
     taxonomy_df_dict = get_taxonomy_df_dict(G, t1_stats_dict)
 
-    for dipt, tdf in taxonomy_df_dict.items():
-        create_taxonomy_data_file(
-            f"{data_f_name}_dtp{dipt}_n{G.number_of_nodes()}_e{G.number_of_edges()}_di{t2}", tdf)
+    if save:
+        for dipt, tdf in taxonomy_df_dict.items():
+            create_taxonomy_data_file(
+                f"{data_f_name}_dtp{dipt}_n{G.number_of_nodes()}_e{G.number_of_edges()}_di{t2}", tdf)
 
-    if not stats_file_exists:
-        path = f"{utilities.stats_data_path}/{data_f_name}.txt"
-        stats_df.to_csv(path, index=False)
+        if not stats_file_exists:
+            path = f"{utilities.stats_data_path}/{data_f_name}.txt"
+            stats_df.to_csv(path, index=False)
 
     return taxonomy_df_dict, stats_df, G.number_of_edges()
 

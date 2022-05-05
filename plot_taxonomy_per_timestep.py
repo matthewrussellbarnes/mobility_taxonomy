@@ -15,11 +15,14 @@ for dirpath, dirs, files in os.walk(utilities.dataset_path, topdown=True):
     dirs[:] = [d for d in dirs if d != 'archive']
     filtered_files = filter(lambda file: not file.startswith('.'), files)
     for file in filtered_files:
+        # Create MobilityTaxonomy object for data file
         mt = ingest.MobilityTaxonomy(
             file,
             dt_percent_list,
             os.path.basename(dirpath),
             utilities.structure_type_lookup[os.path.splitext(file)[0]])
+        # Build mobility taxonomy for data file
+        # Note: use 'save' as False to use memory rather than saving taxonomy and statistics files
         mt.build(save=True)
         mt_list.append(mt)
 

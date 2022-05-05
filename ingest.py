@@ -3,9 +3,9 @@ import networkx as nx
 import pandas as pd
 import math
 import datetime
+import numpy as np
 
 import utilities
-import compute_equality
 
 
 class MobilityTaxonomy:
@@ -100,7 +100,7 @@ def build_taxonomy(networkf, di_percent_list, max_rows=0, save=True):
                         if ct_i % math.ceil(t2 / 100) == 0:
                             stats_df.loc[len(stats_df.index)] = [
                                 creation_time, G.number_of_nodes(), G.number_of_edges(),
-                                compute_equality.gini_coefficient(dict(G.degree)), compute_equality.gini_coefficient(nx.average_neighbor_degree(G))]
+                                gini_coefficient(dict(G.degree)), gini_coefficient(nx.average_neighbor_degree(G))]
 
                 for di_percent in di_percent_list:
                     t1_stats_dict = calculate_t1_stats(
@@ -177,3 +177,13 @@ def create_taxonomy_data_file(f_name, taxonomy_df):
     if not taxonomy_data_f_path:
         path = f"{utilities.taxonomy_data_path}/{f_name}_{str(datetime.datetime.now().strftime('%Y-%m-%d-%H%M'))}.txt"
         taxonomy_df.to_csv(path, index=False)
+
+#  ------------------------------------
+
+
+def gini_coefficient(imp_dict):
+    x = np.array(list(imp_dict.values()))
+    diffsum = 0
+    for i, xi in enumerate(x[:-1], 1):
+        diffsum += np.sum(np.abs(xi - x[i:]))
+    return diffsum / (len(x)**2 * np.mean(x))

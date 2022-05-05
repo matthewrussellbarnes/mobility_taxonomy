@@ -161,7 +161,7 @@ def plot_pca(pca_data_dict, corr_mat, clus_type_dict, plot_colors, plot_name, pl
 
                 point_data_dict['l'] = \
                     utilities.plot_letters[list(
-                        utilities.structure_type_lookup.keys()).index(point_label)]
+                        utilities.dataset_type_lookup.keys()).index(point_label)]
 
                 if cni == 0:
                     if point_label == highlighted_file:

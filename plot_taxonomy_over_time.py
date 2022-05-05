@@ -16,13 +16,13 @@ for dirpath, dirs, files in os.walk(utilities.dataset_path, topdown=True):
         mt = ingest.MobilityTaxonomy(
             file,
             utilities.dt_percent_list,
-            os.path.basename(dirpath),
-            utilities.structure_type_lookup[os.path.splitext(file)[0]])
+            utilities.dataset_type_lookup[os.path.splitext(file)[0]][0],
+            utilities.dataset_type_lookup[os.path.splitext(file)[0]][1])
         mt.build(save=True)
 
         data_f_name = os.path.splitext(file)[0]
         print(utilities.plot_letters[list(
-            utilities.structure_type_lookup.keys()).index(data_f_name)],
+            utilities.dataset_type_lookup.keys()).index(data_f_name)],
             data_f_name, mt.data_type, mt.struc_type)
 
         for dt_percent, taxonomy_df in mt.taxonomy_df_dict.items():

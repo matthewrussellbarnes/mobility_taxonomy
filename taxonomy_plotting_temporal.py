@@ -191,8 +191,8 @@ def plot_temporal(plot_data_dict, plot_colors, clustering_type_list, plot_folder
                                                                                       legend_elements, colour=type_colour)
             point_letter = \
                 utilities.plot_letters[list(
-                    utilities.structure_type_lookup.keys()).index(data_name[:data_name.index(':')])] \
-                if data_name[:data_name.index(':')] in list(utilities.structure_type_lookup.keys()) else '.'
+                    utilities.dataset_type_lookup.keys()).index(data_name[:data_name.index(':')])] \
+                if data_name[:data_name.index(':')] in list(utilities.dataset_type_lookup.keys()) else '.'
 
             x = list(plot_data.keys())
             x.sort()

@@ -19,7 +19,6 @@ class MobilityTaxonomy:
     def build(self, save=False):
         taxonomy_df_dict = {}
         data_f_name = os.path.splitext(self.networkf)[0]
-        print(data_f_name)
 
         build_taxonomy_dt_list = []
         for dt_percent in self.dt_percent_list:
@@ -45,6 +44,8 @@ class MobilityTaxonomy:
             self.stats_df = pd.read_csv(stats_data_f_path)
 
         self.taxonomy_df_dict = taxonomy_df_dict
+
+#  ------------------------------------------
 
 
 def build_taxonomy(networkf, di_percent_list, max_rows=0, save=True):

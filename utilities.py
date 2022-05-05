@@ -5,6 +5,11 @@ from matplotlib import colors
 import string
 import json
 
+# {"dataset_name": ["collection_type", "structure_type"]}
+with open('dataset_type_lookup.json') as f:
+    dataset_type_lookup = json.load(f)
+    f.close()
+
 figs_path = os.path.join(os.getcwd(), 'figs/')
 taxonomy_data_path = os.path.join(os.getcwd(), 'taxonomies')
 stats_data_path = os.path.join(os.getcwd(), 'network_stats')
@@ -76,11 +81,3 @@ def mscatter(x, y, ax=None, m=None, **kw):
             paths.append(path)
         sc.set_paths(paths)
     return sc
-
-
-#   ------
-
-# {'dataset_name' : 'structure_type' }
-with open('structure_type_lookup.json') as f:
-    structure_type_lookup = json.load(f)
-    f.close()

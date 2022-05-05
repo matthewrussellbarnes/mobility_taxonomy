@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import os
 import math
 
-import MobilityTaxonomy
+import ingest
 import taxonomy_plotting
 import taxonomy_plotting_pca
 import utilities
@@ -15,7 +15,7 @@ for dirpath, dirs, files in os.walk(utilities.dataset_path, topdown=True):
     dirs[:] = [d for d in dirs if d != 'archive']
     filtered_files = filter(lambda file: not file.startswith('.'), files)
     for file in filtered_files:
-        mt = MobilityTaxonomy.MobilityTaxonomy(
+        mt = ingest.MobilityTaxonomy(
             file,
             dt_percent_list,
             os.path.basename(dirpath),

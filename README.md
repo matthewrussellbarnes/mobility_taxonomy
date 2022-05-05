@@ -6,6 +6,7 @@ Tools for analysing the changes in importance hierarchies of time evolving compl
 
 - Clone this repo
 - Create a `dataset` folder for all network data files
+  - NB: [Here](https://github.com/matthewrussellbarnes/mobility_taxonomy_data_corpus_collector) exists a repo designed to help you gather data for analysis
 - Check data files consist of three columns seperated by 1 space
   1. `n1` _First node in edge_
   2. `n2` _Second node in edge_

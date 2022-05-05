@@ -37,7 +37,7 @@ class MobilityTaxonomy:
         if build_taxonomy_dt_list:
             build_taxonomy_df_dict, self.stats_df, self.t = build_taxonomy(
                 self.networkf, build_taxonomy_dt_list, max_rows=self.max_rows, save=save)
-            taxonomy_df_dict = taxonomy_df_dict | build_taxonomy_df_dict
+            taxonomy_df_dict = {**taxonomy_df_dict, **build_taxonomy_df_dict}
         else:
             stats_data_f_path = utilities.get_file_path(
                 f"{data_f_name}", utilities.stats_data_path)

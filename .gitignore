@@ -6,8 +6,6 @@
 *.txt
 *.xlsx
 *.vscode
-tw-mkgml5.py
-csv_creation_scripts/*
 *.net
 *.gif
 *.ipynb

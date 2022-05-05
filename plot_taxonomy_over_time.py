@@ -9,7 +9,7 @@ import utilities
 utilities.init()
 
 taxonomy_time_steps = {}
-for dirpath, dirs, files in os.walk(utilities.dataset_path, topdown=True):
+for _, dirs, files in os.walk(utilities.dataset_path, topdown=True):
     dirs[:] = [d for d in dirs if d != 'archive']
     filtered_files = filter(lambda file: not file.startswith('.'), files)
     for file in filtered_files:

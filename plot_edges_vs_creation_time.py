@@ -4,25 +4,20 @@ import csv
 import math
 import datetime
 
-
-import ingest_data
-import build_taxonomy
-import taxonomy_plotting
 import utilities
 
 utilities.init()
 
-for dirpath, dirs, files in os.walk(utilities.dataset_path, topdown=True):
+for _, dirs, files in os.walk(utilities.dataset_path, topdown=True):
     dirs[:] = [d for d in dirs if d != 'archive']
     filtered_files = filter(
         lambda file: not file.startswith('.'), files)
     for file in filtered_files:
         data_f_name = os.path.splitext(file)[0]
         print(data_f_name)
-        data_type = os.path.basename(dirpath)
 
         data_path = os.path.join(
-            utilities.dataset_path, data_type, f"{data_f_name}.csv")
+            utilities.dataset_path, file)
         with open(data_path, encoding='utf-8-sig') as csvfile:
             for max_i_file, _ in enumerate(csvfile):
                 pass
@@ -40,13 +35,9 @@ for dirpath, dirs, files in os.walk(utilities.dataset_path, topdown=True):
                     t = row["creation_time"]
 
                     if '-' in str(t):
-                        if 'us_air_traffic' in data_f_name:
-                            unix_t = taxonomy_plotting.us_air_date_to_unix(t)
-                        else:
-                            date_format = "%Y-%m-%d"
-
-                            unix_t = datetime.datetime.timestamp(
-                                datetime.datetime.strptime(t, date_format))
+                        date_format = "%Y-%m-%d"
+                        unix_t = datetime.datetime.timestamp(
+                            datetime.datetime.strptime(t, date_format))
 
                         ax.scatter(i, float(unix_t))
                     else:

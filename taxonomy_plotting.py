@@ -14,7 +14,7 @@ def default_plot_params(ax, legend_elements=None):
     ax.minorticks_on()
     ax.grid(which="major", alpha=1)
     ax.grid(which="minor", alpha=0.2)
-    ax.tick_params(axis='both', labelsize=utilities.plot_font_size)
+    ax.tick_params(axis='both', labelsize=30)
     if legend_elements:
         ax.legend(handles=legend_elements,
                   # bbox_to_anchor=(0.5, -0.2), loc='upper center',
@@ -52,7 +52,7 @@ def plot_mobility(ax, taxonomy_data, color='black', curve_label=''):
 
 def plot_neighbourhood_mobility(ax, taxonomy_data, color='black', curve_label=''):
     neighbourhood = taxonomy_data['neighbourhood']
-    delta_neighbourhood = taxonomy_data['delta_consistent_neighbourhood']
+    delta_neighbourhood = taxonomy_data['delta_neighbourhood']
 
     ax.scatter(neighbourhood, delta_neighbourhood,
                label=curve_label, color=color)
@@ -78,7 +78,7 @@ def plot_assortativity(ax, taxonomy_data, color='black', curve_label=''):
 
 def plot_delta_assortativity(ax, taxonomy_data, color='black', curve_label=''):
     delta_individual = taxonomy_data['delta_individual']
-    delta_neighbourhood = taxonomy_data['delta_consistent_neighbourhood']
+    delta_neighbourhood = taxonomy_data['delta_neighbourhood']
 
     ax.scatter(delta_individual, delta_neighbourhood,
                label=curve_label, color=color)
@@ -91,7 +91,7 @@ def plot_delta_assortativity(ax, taxonomy_data, color='black', curve_label=''):
 
 def plot_philanthropy(ax, taxonomy_data, color='black', curve_label=''):
     individual = taxonomy_data['individual']
-    delta_neighbourhood = taxonomy_data['delta_consistent_neighbourhood']
+    delta_neighbourhood = taxonomy_data['delta_neighbourhood']
 
     ax.scatter(individual, delta_neighbourhood, label=curve_label,
                color=color)
@@ -341,64 +341,3 @@ def plot_grid_taxonomy_correlations(plot_data_dict, dt_percent):
         plt.tight_layout()
         plt.savefig(
             f"./figs/taxonomy_grid/grid_{plot_name}_dt{dt_percent}_with_gini.png")
-
-# -------------------------
-
-
-def plot_equality(plot_data_dict, y_type=None, clustering_type='data_type'):
-    clustering_type_list = list(dict.fromkeys([pdd[clustering_type]
-                                               for pdd in list(plot_data_dict.values())]))
-    plot_colors = cm.ScalarMappable(colors.Normalize(
-        0, len(clustering_type_list)), 'tab10')
-    _, ax = plt.subplots(1, 1, figsize=(15, 10))
-
-    legend_labels = []
-    legend_elements = []
-    for _, plot_data in plot_data_dict.items():
-        stats_data = plot_data['stats_data']
-        clt = plot_data[clustering_type]
-
-        time_list = list(stats_data['creation_time'][1:])
-        if y_type == 'norm_time':
-            max_time = max(time_list)
-            min_time = min(time_list)
-            norm_time_list = []
-            for t in time_list:
-                if '-' in str(t):
-                    date_format = "%Y-%m-%d"
-
-                    unix_t = datetime.datetime.timestamp(
-                        datetime.datetime.strptime(t, date_format))
-                    unix_max_time = datetime.datetime.timestamp(
-                        datetime.datetime.strptime(max_time, date_format))
-                    unix_min_time = datetime.datetime.timestamp(
-                        datetime.datetime.strptime(min_time, date_format))
-
-                    norm_time_list.append(
-                        (unix_t - unix_min_time) / (unix_max_time - unix_min_time))
-                else:
-                    norm_time_list.append(
-                        (t - min_time) / (max_time - min_time))
-            ax.set_xlabel('Normalised Time', fontsize=utilities.plot_font_size)
-        else:
-            max_it = len(time_list)
-            norm_time_list = [i / max_it for i, _ in enumerate(time_list)]
-            ax.set_xlabel('Normalised Iteration',
-                          fontsize=utilities.plot_font_size)
-
-        equality_list = list(stats_data['gini_coeff'][1:])
-
-        type_colour = plot_colors.to_rgba(
-            clustering_type_list.index(clt))
-        legend_labels, legend_elements = custom_legend_elements(clt, legend_labels,
-                                                                legend_elements, colour=type_colour)
-        ax.plot(norm_time_list, equality_list, color=type_colour)
-        ax.set_ylabel('Gini Coefficient', fontsize=utilities.plot_font_size)
-        # ax.set_title('Equality over time')
-        ax.set_ylim([-0.1, 1.1])
-
-    default_plot_params(ax, legend_elements)
-
-    plt.tight_layout()
-    plt.savefig(
-        f"./figs/equality_comparison_{clustering_type}_{y_type}.png")

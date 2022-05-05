@@ -1,6 +1,4 @@
-import matplotlib.pyplot as plt
 import os
-import pandas as pd
 import math
 
 import MobilityTaxonomy
@@ -44,14 +42,15 @@ for dirpath, dirs, files in os.walk(utilities.dataset_path, topdown=True):
 
         plot_data[data_f_name] = taxonomy_time_steps
 
-# pca_clus_type_list = [['data_type', 'aggl'], ['aggl'], ['data_type'],
-        #   ['f_name'],
 pca_clus_type_list = [['data_type', 'struc_type'], ['struc_type', 'aggl']]
 for pct in pca_clus_type_list:
     print(pct)
+
+    # Plot time evolving 2d principle component analysis for mobility taxonomy over all the data corpus
     taxonomy_plotting_pca.plot_taxonomy_pca_over_time(
         taxonomy_time_steps, clus_name_pair=pct, highlighted_file='')
 
+    # Plot time evolving mobility taxonomy aspects over all the data corpus
     taxonomy_plotting_temporal.plot_taxonomy_aspects_over_time(
         taxonomy_time_steps, clustering_type=pct[0], highlighted_file='')
 
@@ -60,3 +59,14 @@ for pct in pca_clus_type_list:
 
     # taxonomy_plotting_temporal.plot_high_degree_nodes(
     #     taxonomy_time_steps, clustering_type=pct[0], highlighted_file='')
+
+# Plot degree equality over time over all the data corpus
+# Note: set 'use_neighbour' to True for average neighbourhood degree equality
+equality_plot_data = taxonomy_time_steps[utilities.dt_percent_list[0]]
+equality_type_list = ['norm_it', 'norm_time']
+equality_clus_type_list = ['data_type', 'struc_type']
+for eqt in equality_type_list:
+    for clt in equality_clus_type_list:
+        print(eqt, clt)
+        taxonomy_plotting_temporal.plot_equality(
+            equality_plot_data, y_type=eqt, clustering_type=clt, use_neighbour=True)

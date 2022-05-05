@@ -219,3 +219,69 @@ def plot_temporal(plot_data_dict, plot_colors, clustering_type_list, plot_folder
         plt.tight_layout()
         plt.savefig(
             f"./figs/{plot_folder}/{'multi_' if multi else ''}{plot_type}_{plot_name}.png")
+
+
+# -------------------------
+
+
+def plot_equality(plot_data_dict, y_type=None, clustering_type='data_type', use_neighbour=False):
+    clustering_type_list = list(dict.fromkeys([pdd[clustering_type]
+                                               for pdd in list(plot_data_dict.values())]))
+    plot_colors = cm.ScalarMappable(colors.Normalize(
+        0, len(clustering_type_list)), 'tab10')
+    _, ax = plt.subplots(1, 1, figsize=(15, 10))
+
+    legend_labels = []
+    legend_elements = []
+    for _, plot_data in plot_data_dict.items():
+        stats_data = plot_data['stats_data']
+        clt = plot_data[clustering_type]
+
+        time_list = list(stats_data['creation_time'][1:])
+        if y_type == 'norm_time':
+            max_time = max(time_list)
+            min_time = min(time_list)
+            norm_time_list = []
+            for t in time_list:
+                if '-' in str(t):
+                    date_format = "%Y-%m-%d"
+
+                    unix_t = datetime.datetime.timestamp(
+                        datetime.datetime.strptime(t, date_format))
+                    unix_max_time = datetime.datetime.timestamp(
+                        datetime.datetime.strptime(max_time, date_format))
+                    unix_min_time = datetime.datetime.timestamp(
+                        datetime.datetime.strptime(min_time, date_format))
+
+                    norm_time_list.append(
+                        (unix_t - unix_min_time) / (unix_max_time - unix_min_time))
+                else:
+                    norm_time_list.append(
+                        (t - min_time) / (max_time - min_time))
+            ax.set_xlabel('Normalised Time', fontsize=28)
+        else:
+            max_it = len(time_list)
+            norm_time_list = [i / max_it for i, _ in enumerate(time_list)]
+            ax.set_xlabel('Normalised Iteration',
+                          fontsize=28)
+
+        if use_neighbour:
+            equality_list = list(stats_data['neighbour_gini_coeff'][1:])
+        else:
+            equality_list = list(stats_data['gini_coeff'][1:])
+
+        type_colour = plot_colors.to_rgba(
+            clustering_type_list.index(clt))
+        legend_labels, legend_elements = taxonomy_plotting.custom_legend_elements(clt, legend_labels,
+                                                                                  legend_elements, colour=type_colour)
+        ax.plot(norm_time_list, equality_list, color=type_colour)
+        ax.set_ylabel(
+            f"{'neighbour_' if use_neighbour else ''}Gini Coefficient", fontsize=28)
+        # ax.set_title('Equality over time')
+        ax.set_ylim([-0.1, 1.1])
+
+    taxonomy_plotting.default_plot_params(ax, legend_elements)
+
+    plt.tight_layout()
+    plt.savefig(
+        f"./figs/{'neighbour_' if use_neighbour else ''}equality_comparison_{clustering_type}_{y_type}.png")

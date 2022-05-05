@@ -12,4 +12,4 @@ Tools for analysing the changes in importance hierarchies of time evolving compl
 - Run either ``plot_taxonomy_over_time.py`` or ``plot_taxonomy_per_timestep.py``
   - NB: comment out any plots you do not want to create
 
-Any questions, message me or open an issue.
+Any questions, email me (link in bio) or open an issue.

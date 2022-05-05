@@ -6,7 +6,7 @@ import string
 import json
 
 # {"dataset_name": ["collection_type", "structure_type"]}
-with open('dataset_type_lookup.json') as f:
+with open(os.path.join(os.getcwd(), 'dataset_type_lookup.json')) as f:
     dataset_type_lookup = json.load(f)
     f.close()
 

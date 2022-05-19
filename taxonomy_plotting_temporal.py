@@ -1,9 +1,7 @@
 import matplotlib.pyplot as plt
-from matplotlib import cm, colors, lines, patches
+from matplotlib import cm, colors
 
-
-import scipy.stats as stats
-import numpy as np
+import os
 import datetime
 
 import taxonomy_analysis
@@ -11,7 +9,7 @@ import taxonomy_plotting
 import utilities
 
 
-def plot_taxonomy_aspects_over_time(taxonomy_time_steps, clustering_type='data_type', highlighted_file=''):
+def plot_taxonomy_aspects_over_time(taxonomy_time_steps, clustering_type='data_type', highlighted_file='', multi=False):
     clustering_type_list, plot_colors = init_plot_temporal(
         taxonomy_time_steps, clustering_type)
 
@@ -45,7 +43,7 @@ def plot_taxonomy_aspects_over_time(taxonomy_time_steps, clustering_type='data_t
 
     plot_name = f'{highlighted_file}{clustering_type}'
     plot_temporal(plot_data_dict, plot_colors, clustering_type_list,
-                  'taxonomy_aspect_over_time', plot_name, 'Correlation', [-1.1, 1.1], highlighted_file)
+                  'taxonomy_aspect_over_time', plot_name, 'Correlation', [-1.1, 1.1], highlighted_file, multi=multi)
 
 
 def plot_low_degree_ratio(taxonomy_time_steps, clustering_type, degree_threshold=1, change_threshold=0, highlighted_file='IETF'):
@@ -168,14 +166,15 @@ def plot_temporal(plot_data_dict, plot_colors, clustering_type_list, plot_folder
     legend_elements = []
 
     if multi:
-        _, axes = plt.subplots(3, 2, figsize=(15, 10))
+        fig, axes = plt.subplots(2, 2, figsize=(15, 10))
         axes = axes.flatten()
     i = 0
     for plot_type, named_time_data in plot_data_dict.items():
-        if multi and plot_type in ['equality']:
-            # , 'assortativity', 'delta_assortativity']:
-            ax = axes[i]
-            continue
+        if multi:
+            if plot_type in ['equality', 'assortativity', 'delta_assortativity']:
+                continue
+            else:
+                ax = axes[i]
         else:
             _, ax = plt.subplots(1, 1, figsize=(15, 10))
         for data_name, plot_data in named_time_data.items():
@@ -189,10 +188,10 @@ def plot_temporal(plot_data_dict, plot_colors, clustering_type_list, plot_folder
                 z_order = 1
             legend_labels, legend_elements = taxonomy_plotting.custom_legend_elements(clt, legend_labels,
                                                                                       legend_elements, colour=type_colour)
-            point_letter = \
-                utilities.plot_letters[list(
-                    utilities.dataset_type_lookup.keys()).index(data_name[:data_name.index(':')])] \
-                if data_name[:data_name.index(':')] in list(utilities.dataset_type_lookup.keys()) else '.'
+            # point_letter = \
+            #     utilities.plot_letters[list(
+            #         utilities.dataset_type_lookup.keys()).index(data_name[:data_name.index(':')])] \
+            #     if data_name[:data_name.index(':')] in list(utilities.dataset_type_lookup.keys()) else '.'
 
             x = list(plot_data.keys())
             x.sort()
@@ -201,30 +200,43 @@ def plot_temporal(plot_data_dict, plot_colors, clustering_type_list, plot_folder
             for tsx in x:
                 y.append(plot_data[tsx])
 
-            ax.plot(x, y, color=type_colour, zorder=z_order)
-            #  , linewidth=z_order)
+            ax.plot(x, y, color=type_colour, zorder=z_order, linewidth=z_order)
             # ax.plot(x[0] - 1, y[0],
             #              marker=f"${point_letter}$", markersize=20, color=type_colour, zorder=z_order, linewidth=z_order)
 
         taxonomy_plotting.default_plot_params(ax, legend_elements)
-        ax.set_title(plot_type, fontsize=utilities.plot_font_size)
-        ax.set_xlabel('Percentage of Edges',
-                      fontsize=utilities.plot_font_size)
-        ax.set_ylabel(ylabel, fontsize=utilities.plot_font_size)
+
         if ylim:
             ax.set_ylim(ylim)
 
         i += 1
 
+        if multi:
+            ax.set_title(plot_type, fontsize=28)
+            if plot_type in ['mobility']:
+                ax.legend(handles=legend_elements,
+                          #               # bbox_to_anchor=(0.5, -0.2), loc='upper center',
+                          ncol=2)
+            fig.add_subplot(111, frame_on=False)
+            plt.tick_params(labelcolor="none", bottom=False, left=False)
+
+            plt.xlabel('Percentage of Edges',
+                       fontsize=28)
+            plt.ylabel(ylabel, fontsize=28)
+        else:
+            ax.set_xlabel('Percentage of Edges',
+                          fontsize=utilities.plot_font_size)
+            ax.set_ylabel(ylabel, fontsize=utilities.plot_font_size)
+
         plt.tight_layout()
-        plt.savefig(
-            f"./figs/{plot_folder}/{'multi_' if multi else ''}{plot_type}_{plot_name}.png")
+        plt.savefig(os.path.join(utilities.figs_path, plot_folder,
+                                 f"{'multi_' if multi else ''}{plot_type}_{plot_name}.png"))
 
 
 # -------------------------
 
 
-def plot_equality(plot_data_dict, y_type=None, clustering_type='data_type', use_neighbour=False):
+def plot_equality(plot_data_dict, y_type=None, clustering_type='data_type', use_neighbour=False, highlighted_file=''):
     clustering_type_list = list(dict.fromkeys([pdd[clustering_type]
                                                for pdd in list(plot_data_dict.values())]))
     plot_colors = cm.ScalarMappable(colors.Normalize(
@@ -233,7 +245,7 @@ def plot_equality(plot_data_dict, y_type=None, clustering_type='data_type', use_
 
     legend_labels = []
     legend_elements = []
-    for _, plot_data in plot_data_dict.items():
+    for network_name, plot_data in plot_data_dict.items():
         stats_data = plot_data['stats_data']
         clt = plot_data[clustering_type]
 
@@ -270,18 +282,23 @@ def plot_equality(plot_data_dict, y_type=None, clustering_type='data_type', use_
         else:
             equality_list = list(stats_data['gini_coeff'][1:])
 
-        type_colour = plot_colors.to_rgba(
-            clustering_type_list.index(clt))
+        if network_name == highlighted_file:
+            type_colour = 'black'
+            z_order = 2
+        else:
+            type_colour = plot_colors.to_rgba(
+                clustering_type_list.index(clt))
+            z_order = 1
         legend_labels, legend_elements = taxonomy_plotting.custom_legend_elements(clt, legend_labels,
                                                                                   legend_elements, colour=type_colour)
-        ax.plot(norm_time_list, equality_list, color=type_colour)
+        ax.plot(norm_time_list, equality_list,
+                color=type_colour, zorder=z_order, linewidth=z_order)
         ax.set_ylabel(
             f"{'neighbour_' if use_neighbour else ''}Gini Coefficient", fontsize=28)
-        # ax.set_title('Equality over time')
         ax.set_ylim([-0.1, 1.1])
 
     taxonomy_plotting.default_plot_params(ax, legend_elements)
 
     plt.tight_layout()
-    plt.savefig(
-        f"./figs/{'neighbour_' if use_neighbour else ''}equality_comparison_{clustering_type}_{y_type}.png")
+    plt.savefig(os.path.join(utilities.figs_path,
+                             f"{highlighted_file}{'neighbour_' if use_neighbour else ''}equality_comparison_{clustering_type}_{y_type}.png"))

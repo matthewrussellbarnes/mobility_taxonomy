@@ -69,4 +69,4 @@ for eqt in equality_type_list:
     for clt in equality_clus_type_list:
         print(eqt, clt)
         taxonomy_plotting_temporal.plot_equality(
-            equality_plot_data, y_type=eqt, clustering_type=clt, use_neighbour=True)
+            equality_plot_data, y_type=eqt, clustering_type=clt, use_neighbour=False, highlighted_file='')

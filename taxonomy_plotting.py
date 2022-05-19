@@ -4,7 +4,7 @@ from matplotlib import cm, colors, lines, patches
 
 import scipy.stats as stats
 import numpy as np
-import datetime
+import os
 
 import taxonomy_analysis
 import utilities
@@ -303,9 +303,9 @@ def plot_taxonomy_pairs_for_multiple_networks(plot_data_dict, dt_percent):
 # --------------------------------
 
 
-def plot_grid_taxonomy_correlations(plot_data_dict, dt_percent):
+def plot_grid_taxonomy_correlations(plot_data_dict, dt_percent, with_gini=True):
     taxonomy_data_dict = taxonomy_analysis.build_taxonomy_data_dict(
-        plot_data_dict, True)
+        plot_data_dict, with_gini)
     plot_labels = [label.replace('_', ' ').title().replace('Delta', 'Change in')
                    for label, _ in taxonomy_data_dict.items()]
 
@@ -325,6 +325,8 @@ def plot_grid_taxonomy_correlations(plot_data_dict, dt_percent):
         for pos_x in range(len(grid_data)):
             for pos_y in range(len(grid_data[pos_x])):
                 label = round(grid_data[pos_x][pos_y], 2)
+                if str(label) == '0':
+                    label = '-'
                 ax.text(pos_x, pos_y, label, color='black',
                         ha='center', va='center', fontsize=utilities.plot_font_size)
 
@@ -339,5 +341,5 @@ def plot_grid_taxonomy_correlations(plot_data_dict, dt_percent):
 
         fig.colorbar(im)
         plt.tight_layout()
-        plt.savefig(
-            f"./figs/taxonomy_grid/grid_{plot_name}_dt{dt_percent}_with_gini.png")
+        plt.savefig(os.path.join(utilities.figs_path, "taxonomy_grid",
+                                 f"grid_{plot_name}_dt{dt_percent}{'_with_gini'if with_gini else ''}.png"))

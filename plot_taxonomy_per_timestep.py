@@ -15,7 +15,7 @@ for dirpath, dirs, files in os.walk(utilities.dataset_path, topdown=True):
     dirs[:] = [d for d in dirs if d != 'archive']
     filtered_files = filter(lambda file: not file.startswith('.'), files)
     for file in filtered_files:
-        print(data_f_name=os.path.splitext(file)[0])
+        print(os.path.splitext(file)[0])
 
         # Create MobilityTaxonomy object for data file
         mt = ingest.MobilityTaxonomy(
@@ -35,8 +35,8 @@ for dt_percent in dt_percent_list:
         _, ax = plt.subplots(1, 1, figsize=(15, 10))
         taxonomy_plotting.plot_taxonomy_for_single_network(
             ax, mob_tax.taxonomy_df_dict[dt_percent], f"{mob_tax.networkf} with t={mob_tax.t} and dt={int(math.ceil(int(mob_tax.t) * (dt_percent / 100)))}")
-        plt.savefig(
-            f"./figs/taxomony_{mob_tax.networkf}_ti{mob_tax.t}_dti{int(math.ceil(int(mob_tax.t) * (dt_percent / 100)))}.png")
+        plt.savefig(os.path.join(utilities.figs_path,
+                                 f"taxomony_{mob_tax.networkf}_ti{mob_tax.t}_dti{int(math.ceil(int(mob_tax.t) * (dt_percent / 100)))}.png"))
 
         plot_data[mob_tax.networkf] = {
             'taxonomy_data': mob_tax.taxonomy_df_dict[dt_percent],
@@ -70,4 +70,4 @@ for dt_percent in dt_percent_list:
 
     # Plot grid of correlation coefficents between taxonomy aspects over all the data corpus
     taxonomy_plotting.plot_grid_taxonomy_correlations(
-        plot_data, dt_percent)
+        plot_data, dt_percent, with_gini=True)

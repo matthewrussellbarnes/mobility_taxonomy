@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from matplotlib import cm, colors
-from adjustText import adjust_text
 
+import os
 import numpy as np
 
 import taxonomy_analysis
@@ -247,5 +247,5 @@ def plot_pca(pca_data_dict, corr_mat, clus_type_dict, plot_colors, plot_name, pl
     if len(clus_type_dict) == 2:
         plot_name += f"_ct2{list(clus_type_dict.keys())[1]}"
 
-    plt.savefig(
-        f"./figs/{plot_folder}/{plot_name}.png")
+    plt.savefig(os.path.join(utilities.figs_path,
+                             plot_folder, f"{plot_name}.png"))

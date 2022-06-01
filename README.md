@@ -2,6 +2,8 @@
 
 Tools for analysing the changes in importance hierarchies of time evolving complex networks
 
+Preprint of paper available [here](https://arxiv.org/abs/2205.14091)
+
 # Basic setup
 
 - Clone this repo
